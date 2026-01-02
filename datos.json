@@ -1,0 +1,40 @@
+{
+  "cliente": {
+    "nombre": "Juan",
+    "apellidos": "García López",
+    "coches": [
+      {
+        "matricula": "1234ABC",
+        "marca": "Toyota",
+        "modelo": "Corolla",
+        "kilometros": 45000
+      },
+      {
+        "matricula": "5678DEF",
+        "marca": "Ford",
+        "modelo": "Focus",
+        "kilometros": 82000
+      }
+    ],
+    "gestiones": [
+      {
+        "tipo": "cita",
+        "fecha": "2024-12-15",
+        "hora": "10:30",
+        "matriculaRelacionada": "1234ABC"
+      },
+      {
+        "tipo": "compra",
+        "fecha": "2024-11-20",
+        "hora": "16:00",
+        "matriculaRelacionada": "5678DEF"
+      },
+      {
+        "tipo": "cita",
+        "fecha": "2024-12-28",
+        "hora": "09:00",
+        "matriculaRelacionada": "1234ABC"
+      }
+    ]
+  }
+}
