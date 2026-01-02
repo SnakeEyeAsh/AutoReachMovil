@@ -50,11 +50,17 @@ export async function obtenerGestiones():Promise<gestiones>{
 
 export async function agregarGestion(gestion:any){
 
+    // Implementar la lógica para agregar una gestión
+
 }   
 export async function borrarGestion(id:string){
+
+    // Implementar la lógica para borrar una gestión
 
 } 
 
 export async function modificarGestion(){
 
+    // Implementar la lógica para modificar una gestión
+    
 }
