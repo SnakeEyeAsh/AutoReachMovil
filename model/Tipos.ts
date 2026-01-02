@@ -8,5 +8,8 @@ export type gestion={
     tipo:string
     fecha:string
     hora:string
-    matricula:string
+    matriculaRelacionada:string
+    modifiacado:()=>void
+    borrado:()=>void
 }
+export type gestiones=gestion[]

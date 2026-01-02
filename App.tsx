@@ -1,203 +1,215 @@
-import { StyleSheet, Text, View, StatusBar, TouchableOpacity, ScrollView, Pressable } from 'react-native'
-import React, { useState } from 'react'
-import { Cliente } from './components/Cliente'
-import { Picker } from '@react-native-picker/picker'
-
+import {
+  Text,
+  View,
+  StatusBar,
+  ScrollView,
+  Pressable,
+  Modal,
+  FlatList,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Cliente } from "./components/Cliente";
+import { Picker } from "@react-native-picker/picker";
+import { Gestion } from "./components/Gestion";
+import { appStyles } from "./Styles/styles";
+import { obtenerCoche, obtenerGestiones, obtenerMatriculas } from "./database/ClienteDAO";
+import { Coche } from "./components/Coche";
+import { coche, gestion } from "./model/Tipos";
 
 export default function App() {
-  const [matriculaSeleccionada, setMatriculaSeleccionada] = useState('ABC1234')
-  const [matriculaSecundaria, setMatriculaSecundaria] = useState('')
+  const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
+  const [coche, setCoche] = useState<coche>();
 
-  const matriculas = ['ABC1234', 'XYZ5678', 'DEF9012', 'GHI3456']
+  const [gestiones, setGestiones] = useState(false);
+  const [coches, setCoches] = useState(false);
+
+  const [matriculas, setMatriculas] = useState<string[]>([]);
+  const [gestionesLista, setGestionesLista] = useState<gestion[]>([]);
+
+  function llenarMatriculas() {
+    obtenerMatriculas()
+      .then((mats) => {
+        console.log("Matriculas obtenidas:", mats);
+        setMatriculas(mats);
+        setMatriculaSeleccionada(mats[0]);
+      })
+      .catch((error) => {
+        console.error("Error al obtener las matriculas:", error);
+      });
+  }
+
+  useEffect(() => llenarMatriculas(), []);
+
+  console.log("Matriculas en estado:", matriculaSeleccionada);
+
+  function generarCoche() {
+    obtenerCoche(matriculaSeleccionada)
+      .then((coche) => {
+        console.log("Coche obtenido:" + coche);
+        setCoche(coche);
+      })
+      .catch((error) => {
+        console.error("Error al obtener el coche:", error);
+      });
+  }
+
+  function generarGestiones() {
+    
+    obtenerGestiones()
+      .then((gestiones) => {
+        console.log("Gestiones obtenidas:" + gestiones);
+        setGestionesLista(gestiones);
+      })
+      .catch((error) => {
+        console.error("Error al obtener las gestiones:", error);
+      });
+  }
 
   return (
-    <View style={styles.container}>
+    <View style={appStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
 
-      
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>AutoReach</Text>
-        <Text style={styles.headerSubtitle}>Gestión de tu vehículo</Text>
+      <View style={appStyles.header}>
+        <Text style={appStyles.headerTitle}>AutoReach</Text>
+        <Text style={appStyles.headerSubtitle}>Gestión de tu vehículo</Text>
       </View>
 
-      <ScrollView style={styles.content}>
-        
-        <View style={styles.profileCard}>
-          <Text style={styles.cardTitle}>Perfil del Conductor</Text>
-          <Cliente nombre={'Pepe'} apellidos={'Gonzales'}/>
+      <ScrollView style={appStyles.content}>
+        <View style={appStyles.profileCard}>
+          <Text style={appStyles.cardTitle}>Perfil del Conductor</Text>
+          <Cliente nombre={"Pepe"} apellidos={"Gonzales"} />
         </View>
 
-        
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Seleccionar Vehículo</Text>
+        <View style={appStyles.card}>
+          <Text style={appStyles.cardTitle}>Seleccionar Vehículo</Text>
 
-          <Text style={styles.label}>Matrícula Principal</Text>
-          <View style={styles.pickerContainer}>
+          <Text style={appStyles.label}>Matrícula</Text>
+          <View style={appStyles.pickerContainer}>
             <Picker
               selectedValue={matriculaSeleccionada}
               onValueChange={(itemValue) => setMatriculaSeleccionada(itemValue)}
-              style={styles.picker}
+              style={appStyles.picker}
             >
               {matriculas.map((mat) => (
                 <Picker.Item key={mat} label={mat} value={mat} />
               ))}
             </Picker>
           </View>
-
-          <Text style={styles.label}>Matrícula Secundaria (Opcional)</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={matriculaSecundaria}
-              onValueChange={(itemValue) => setMatriculaSecundaria(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Ninguna" value="" />
-              {matriculas.map((mat) => (
-                <Picker.Item key={mat} label={mat} value={mat} />
-              ))}
-            </Picker>
-          </View>
+          <Pressable
+            style={appStyles.primaryButton}
+            onPress={() => {
+              generarCoche();
+              setCoches(true);
+            }}
+          >
+            <Text style={appStyles.primaryButtonText}>Ver Coche</Text>
+          </Pressable>
         </View>
 
-        
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Acciones Rápidas</Text>
+        <View style={appStyles.card}>
+          <Text style={appStyles.cardTitle}>Gestiones</Text>
 
           <Pressable
-            style={styles.primaryButton}
-            onPress={() => console.log('Ver gestiones')}
+            style={appStyles.primaryButton}
+            onPress={() => {
+              generarGestiones();
+              setGestiones(true);
+            }}
           >
-            <Text style={styles.primaryButtonText}>📋 Ver Gestiones Realizadas</Text>
+            <Text style={appStyles.primaryButtonText}>
+              Ver Gestiones Realizadas
+            </Text>
           </Pressable>
 
           <Pressable
-            style={styles.secondaryButton}
-            onPress={() => console.log('Agendar cita')}
+            style={appStyles.secondaryButton}
+            onPress={() => setCoches(true)}
           >
-            <Text style={styles.secondaryButtonText}>📅 Agendar Nueva Cita</Text>
+            <Text style={appStyles.secondaryButtonText}>
+              Agendar Nueva Cita
+            </Text>
           </Pressable>
         </View>
+        {gestiones && (
+          <Modal transparent={true} animationType="fade">
+            <View style={appStyles.modalOverlay}>
+              <View style={appStyles.modalContent}>
+                <View style={appStyles.modalHeader}>
+                  <Text style={appStyles.modalTitle}>Gestiones</Text>
+                  <Pressable
+                    style={appStyles.closeButton}
+                    onPress={() => setGestiones(false)}
+                  >
+                    <Text style={appStyles.closeButtonText}>✕</Text>
+                  </Pressable>
+                </View>
+
+                <FlatList
+                  data={gestionesLista}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <Gestion
+                      tipo={item.tipo}
+                      fecha={item.fecha}
+                      hora={item.hora}
+                      matriculaRelacionada={item.matriculaRelacionada}                    
+                      />
+                  )}
+                  
+                />
+
+                <Pressable
+                  style={appStyles.backButton}
+                  onPress={() => setGestiones(false)}
+                >
+                  <Text style={appStyles.backButtonText}>Cerrar</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        )}
+        {coches && (
+          <Modal transparent={true} animationType="fade">
+            <View style={appStyles.modalOverlay}>
+              <View style={appStyles.modalContent}>
+                <View style={appStyles.modalHeader}>
+                  <Text style={appStyles.modalTitle}>Coches</Text>
+                  <Pressable
+                    style={appStyles.closeButton}
+                    onPress={() => setCoches(false)}
+                  >
+                    <Text style={appStyles.closeButtonText}>✕</Text>
+                  </Pressable>
+                </View>
+
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {coche && (
+                    <Coche
+                      marca={coche.marca}
+                      modelo={coche.modelo}
+                      matricula={coche.matricula}
+                      kilometros={coche.kilometros}
+                    />
+                  )}
+                </View>
+
+                <Pressable
+                  style={appStyles.backButton}
+                  onPress={() => setCoches(false)}
+                >
+                  <Text style={appStyles.backButtonText}>Cerrar</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </View>
-  )
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5'
-  },
-  header: {
-    backgroundColor: '#1a1a2e',
-    paddingTop: 50,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#00d4ff',
-    marginBottom: 5
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#b8b8b8',
-    fontWeight: '300'
-  },
-  content: {
-    flex: 1,
-    padding: 20
-  },
-  profileCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 20
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 20
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1a1a2e',
-    marginBottom: 15,
-    textAlign: 'center'
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1a1a2e',
-    marginBottom: 8,
-    marginTop: 10
-  },
-  pickerContainer: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#00d4ff',
-    marginBottom: 15,
-    overflow: 'hidden'
-  },
-  picker: {
-    height: 50,
-    color: '#1a1a2e'
-  },
-  primaryButton: {
-    backgroundColor: '#00d4ff',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginBottom: 15,
-    shadowColor: '#00d4ff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6
-  },
-  primaryButtonText: {
-    color: '#1a1a2e',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  },
-  secondaryButton: {
-    backgroundColor: '#1a1a2e',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#00d4ff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4
-  },
-  secondaryButtonText: {
-    color: '#00d4ff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center'
-  }
-})
