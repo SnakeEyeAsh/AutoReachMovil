@@ -27,7 +27,7 @@ export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, bo
         }}
       >
         <View style={fecha < fechaActual ? gestionStyles.pin2:gestionStyles.pin1}></View>
-        <Text style={gestionStyles.tipo}>Pendinete</Text>
+        <Text style={gestionStyles.tipo}>{estado}</Text>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
         <Pressable style={gestionStyles.updateButton} onPress={modifiacado}>

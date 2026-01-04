@@ -38,7 +38,7 @@ export async function obtenerGestiones(): Promise<gestiones> {
   return respuesta.data;
 }
 
-export async function agregarGestion(gestion: Omit<gestion, "id">) {
+export async function agregarGestion(gestion:gestion) {
   const url = `${URL}/gestiones`;
   const respuesta = await axios.post(url, gestion);
   console.log("Gestión agregada exitosamente:", respuesta.data);

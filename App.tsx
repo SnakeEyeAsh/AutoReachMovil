@@ -7,15 +7,17 @@ import {
   Modal,
   FlatList,
   Alert,
+  TextInput,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
 import { Gestion } from "./components/Gestion";
 import { appStyles } from "./Styles/styles";
-import { obtenerCoche, obtenerGestiones, obtenerMatriculas, borrarGestionDAO, modificarGestionDAO } from "./database/ClienteDAO";
+import { obtenerCoche, obtenerGestiones, obtenerMatriculas, borrarGestionDAO, modificarGestionDAO, agregarGestion } from "./database/ClienteDAO";
 import { Coche } from "./components/Coche";
 import { coche, gestion } from "./model/Tipos";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function App() {
   const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
@@ -24,8 +26,20 @@ export default function App() {
   const [gestiones, setGestiones] = useState(false);
   const [coches, setCoches] = useState(false);
 
+  const [nuevaGestion,setNuevaGestion]= useState(false)
+
   const [matriculas, setMatriculas] = useState<string[]>([]);
   const [gestionesLista, setGestionesLista] = useState<gestion[]>([]);
+
+  // Estados para nueva gestión
+  const [nuevoTipo, setNuevoTipo] = useState("cita");
+  const [nuevaFecha, setNuevaFecha] = useState("");
+  const [nuevaHora, setNuevaHora] = useState("");
+  const [nuevaMatricula, setNuevaMatricula] = useState("");
+
+  // Estados para DatePicker
+  const [mostrarDatePicker, setMostrarDatePicker] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
 
   function llenarMatriculas() {
     obtenerMatriculas()
@@ -40,8 +54,9 @@ export default function App() {
   }
 
   useEffect(() => llenarMatriculas(), []);
+  useEffect(() => {setMatriculaSeleccionada(matriculas[0]);}, [matriculas]);
 
-  console.log("Matriculas en estado:", matriculaSeleccionada);
+  //console.log("Matriculas en estado:", matriculaSeleccionada);
 
   function generarCoche() {
     obtenerCoche(matriculaSeleccionada)
@@ -82,7 +97,7 @@ export default function App() {
           onPress: () => {
             borrarGestionDAO(id).then(()=>{
               console.log("Gestion borrada correctamente");
-              generarGestiones(); // Recargar las gestiones después de borrar
+              generarGestiones();
             }).catch((error: any)=>{
               console.error("Error al borrar la gestion:", error);
             });
@@ -95,9 +110,18 @@ export default function App() {
   function modificarGestionHandler(g:gestion){
     modificarGestionDAO(g).then(()=>{
       console.log("Gestion modificada correctamente");
-      generarGestiones(); // Recargar las gestiones después de modificar
+      generarGestiones(); 
     }).catch((error: any)=>{
       console.error("Error al modificar la gestion:", error);
+    });
+  }
+
+  function agregarNuevaGestionHandler(g:gestion){
+    agregarGestion(g).then(()=>{
+      console.log("Gestion agregada correctamente");
+      generarGestiones();
+    }).catch((error: any)=>{
+      console.error("Error al agregar la gestion:", error);
     });
   }
 
@@ -159,7 +183,9 @@ export default function App() {
 
           <Pressable
             style={appStyles.secondaryButton}
-            onPress={() => setCoches(true)}
+            onPress={() => {
+              setNuevaGestion(true);
+            }}
           >
             <Text style={appStyles.secondaryButtonText}>
               Agendar Nueva Cita
@@ -250,6 +276,118 @@ export default function App() {
             </View>
           </Modal>
         )}
+        {
+          nuevaGestion && (
+            <Modal transparent={true} animationType="fade">
+              <View style={appStyles.modalOverlay}>
+                <View style={appStyles.modalContent}>
+                  <View style={appStyles.modalHeader}>
+                    <Text style={appStyles.modalTitle}>Nueva Gestión</Text>
+                    <Pressable
+                      style={appStyles.closeButton}
+                      onPress={() => setNuevaGestion(false)}
+                    >
+                      <Text style={appStyles.closeButtonText}>✕</Text>
+                    </Pressable>
+                  </View>
+
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <Text style={appStyles.label}>Tipo de Gestión</Text>
+                    <View style={appStyles.pickerContainer}>
+                      <Picker
+                        selectedValue={nuevoTipo}
+                        onValueChange={(itemValue) => setNuevoTipo(itemValue)}
+                        style={appStyles.picker}
+                      >
+                        <Picker.Item label="Cita" value="cita" />
+                        <Picker.Item label="Taller" value="taller" />
+                      </Picker>
+                    </View>
+
+                    <Text style={appStyles.label}>Fecha</Text>
+                    <Pressable
+                      style={appStyles.inputField}
+                      onPress={() => setMostrarDatePicker(true)}
+                    >
+                      <Text style={{ color: nuevaFecha ? '#1a1a2e' : '#999' }}>
+                        {nuevaFecha || 'Selecciona una fecha'}
+                      </Text>
+                    </Pressable>
+
+                    {mostrarDatePicker && (
+                      <DateTimePicker
+                        value={fechaSeleccionada}
+                        mode="date"
+                        display="default"
+                        onChange={(event, selectedDate) => {
+                          setMostrarDatePicker(false);
+                          if (selectedDate) {
+                            setFechaSeleccionada(selectedDate);
+                            // Formatear fecha a YYYY-MM-DD
+                            const year = selectedDate.getFullYear();
+                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(selectedDate.getDate()).padStart(2, '0');
+                            setNuevaFecha(`${year}-${month}-${day}`);
+                          }
+                        }}
+                      />
+                    )}
+
+                    <Text style={appStyles.label}>Hora (HH:MM)</Text>
+                    <TextInput
+                      style={appStyles.inputField}
+                      value={nuevaHora}
+                      onChangeText={setNuevaHora}
+                      placeholder="14:30"
+                    />
+
+                    <Text style={appStyles.label}>Matrícula Relacionada</Text>
+                    <View style={appStyles.pickerContainer}>
+                      <Picker
+                        selectedValue={matriculaSeleccionada}
+                        onValueChange={(itemValue) => setMatriculaSeleccionada(itemValue)}
+                        style={appStyles.picker}
+                      >
+                        {matriculas.map((mat) => (
+                          <Picker.Item key={mat} label={mat} value={mat} />
+                        ))}
+                      </Picker>
+                    </View>
+                  </ScrollView>
+
+                  <Pressable
+                    style={appStyles.primaryButton}
+                    onPress={() => {
+                      const nuevaGestionObj: gestion = {
+                        id: 0, // El servidor lo asignará
+                        tipo: nuevoTipo,
+                        fecha: nuevaFecha,
+                        hora: nuevaHora,
+                        matriculaRelacionada: matriculaSeleccionada
+                      };
+                      agregarNuevaGestionHandler(nuevaGestionObj);
+                      setNuevaGestion(false);
+                      // Limpiar campos
+                      setNuevoTipo("cita");
+                      setNuevaFecha("");
+                      setNuevaHora("");
+                      setNuevaMatricula("");
+                    }}
+                  >
+                    <Text style={appStyles.primaryButtonText}>Guardar Gestión</Text>
+                  </Pressable>
+
+                  <Pressable
+                    style={appStyles.backButton}
+                    onPress={() => setNuevaGestion(false)}
+                  >
+                    <Text style={appStyles.backButtonText}>Cancelar</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
+          )
+        }
       </ScrollView>
     </View>
   );

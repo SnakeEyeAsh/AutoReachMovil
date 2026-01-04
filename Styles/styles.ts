@@ -195,6 +195,16 @@ export const appStyles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  inputField: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    padding: 15,
+    fontSize: 16,
+    color: colors.primary,
+    marginBottom: 15,
+  },
 });
 
 // Estilos de Gestion

@@ -35,10 +35,10 @@
       "matriculaRelacionada": "5678DEF"
     },
     {
-      "id": 3,
+      "id": 4,
       "tipo": "cita",
-      "fecha": "2024-12-28",
-      "hora": "09:00",
+      "fecha": "2026-01-02",
+      "hora": "10:00",
       "matriculaRelacionada": "1234ABC"
     }
   ]
