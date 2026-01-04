@@ -15,3 +15,10 @@ export type gestion={
     borrado?:()=>void
 }
 export type gestiones=gestion[]
+
+export type documento={
+    id:number
+    estado:string
+    titulo:string
+    descripcion:string
+}

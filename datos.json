@@ -41,5 +41,14 @@
       "hora": "10:00",
       "matriculaRelacionada": "1234ABC"
     }
+  ],
+  "documentos": [
+    {
+      "id": 1,
+      "estado": "Sin firmar",
+      "titulo": "2024-12-15",
+      "descripcion": "Contrato de mantenimiento para Toyota Corolla"
+    }
+      
   ]
 }

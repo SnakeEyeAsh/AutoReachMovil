@@ -18,18 +18,11 @@ export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, bo
       <View>
         <Text style={gestionStyles.matricula}>{matriculaRelacionada}</Text>
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginTop: 5,
-          marginBottom: 5,
-        }}
-      >
+      <View style={gestionStyles.estadoContainer}>
         <View style={fecha < fechaActual ? gestionStyles.pin2:gestionStyles.pin1}></View>
         <Text style={gestionStyles.tipo}>{estado}</Text>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
+      <View style={gestionStyles.buttonsContainer}>
         <Pressable style={gestionStyles.updateButton} onPress={modifiacado}>
           <Text style={gestionStyles.deleteButtonText}>Modificar</Text>
         </Pressable>
@@ -37,7 +30,7 @@ export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, bo
         <Pressable style={gestionStyles.deleteButton} onPress={borrado}>
           <Text style={gestionStyles.deleteButtonText}>Borrar</Text>
         </Pressable>
-        
+
       </View>
     </View>
   );

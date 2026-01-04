@@ -14,9 +14,18 @@ import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
 import { Gestion } from "./components/Gestion";
 import { appStyles } from "./Styles/styles";
-import { obtenerCoche, obtenerGestiones, obtenerMatriculas, borrarGestionDAO, modificarGestionDAO, agregarGestion } from "./database/ClienteDAO";
+import {
+  obtenerCoche,
+  obtenerGestiones,
+  obtenerMatriculas,
+  borrarGestionDAO,
+  modificarGestionDAO,
+  agregarGestion,
+  obtenerDocumentos,
+} from "./database/ClienteDAO";
 import { Coche } from "./components/Coche";
-import { coche, gestion } from "./model/Tipos";
+import { Documento } from "./components/Documento";
+import { coche, gestion, documento } from "./model/Tipos";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function App() {
@@ -26,10 +35,13 @@ export default function App() {
   const [gestiones, setGestiones] = useState(false);
   const [coches, setCoches] = useState(false);
 
-  const [nuevaGestion,setNuevaGestion]= useState(false)
+  const [nuevaGestion, setNuevaGestion] = useState(false);
 
   const [matriculas, setMatriculas] = useState<string[]>([]);
   const [gestionesLista, setGestionesLista] = useState<gestion[]>([]);
+  const [documentosLista, setDocumentosLista] = useState<documento[]>([]);
+
+  const [documentos, setDocumentos] = useState<boolean>(false);
 
   // Estados para nueva gestión
   const [nuevoTipo, setNuevoTipo] = useState("cita");
@@ -44,85 +56,103 @@ export default function App() {
   function llenarMatriculas() {
     obtenerMatriculas()
       .then((mats) => {
-        console.log("Matriculas obtenidas:", mats);
+        // console.log("Matriculas obtenidas:", mats);
         setMatriculas(mats);
         setMatriculaSeleccionada(mats[0]);
       })
       .catch((error) => {
-        console.error("Error al obtener las matriculas:", error);
+        // console.error("Error al obtener las matriculas:", error);
       });
   }
 
   useEffect(() => llenarMatriculas(), []);
-  useEffect(() => {setMatriculaSeleccionada(matriculas[0]);}, [matriculas]);
+  useEffect(() => {
+    setMatriculaSeleccionada(matriculas[0]);
+  }, [matriculas]);
 
   //console.log("Matriculas en estado:", matriculaSeleccionada);
 
   function generarCoche() {
     obtenerCoche(matriculaSeleccionada)
       .then((coche) => {
-        console.log("Coche obtenido:" + coche);
+        // console.log("Coche obtenido:" + coche);
         setCoche(coche);
       })
       .catch((error) => {
-        console.error("Error al obtener el coche:", error);
+        // console.error("Error al obtener el coche:", error);
       });
   }
 
   function generarGestiones() {
-    
     obtenerGestiones()
       .then((gestiones) => {
-        console.log("Gestiones obtenidas:" + gestiones);
+        // console.log("Gestiones obtenidas:" + gestiones);
         setGestionesLista(gestiones);
       })
       .catch((error) => {
-        console.error("Error al obtener las gestiones:", error);
+        // console.error("Error al obtener las gestiones:", error);
       });
   }
   /////////////////////////////////////////////////////////////////////////////////////////////
 
-  function borrarGestionHandler(id: number){
+  function borrarGestionHandler(id: number) {
     Alert.alert(
       "Confirmar eliminación",
       "¿Estás seguro de que deseas borrar esta gestión? Esta operación no se puede deshacer.",
       [
         {
           text: "Cancelar",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Borrar",
           style: "destructive",
           onPress: () => {
-            borrarGestionDAO(id).then(()=>{
-              console.log("Gestion borrada correctamente");
-              generarGestiones();
-            }).catch((error: any)=>{
-              console.error("Error al borrar la gestion:", error);
-            });
-          }
-        }
+            borrarGestionDAO(id)
+              .then(() => {
+                // console.log("Gestion borrada correctamente");
+                generarGestiones();
+              })
+              .catch((error: any) => {
+                // console.error("Error al borrar la gestion:", error);
+              });
+          },
+        },
       ]
     );
   }
 
-  function modificarGestionHandler(g:gestion){
-    modificarGestionDAO(g).then(()=>{
-      console.log("Gestion modificada correctamente");
-      generarGestiones(); 
-    }).catch((error: any)=>{
-      console.error("Error al modificar la gestion:", error);
-    });
+  function modificarGestionHandler(g: gestion) {
+    modificarGestionDAO(g)
+      .then(() => {
+        // console.log("Gestion modificada correctamente");
+        generarGestiones();
+      })
+      .catch((error: any) => {
+        // console.error("Error al modificar la gestion:", error);
+      });
   }
 
-  function agregarNuevaGestionHandler(g:gestion){
-    agregarGestion(g).then(()=>{
-      console.log("Gestion agregada correctamente");
-      generarGestiones();
-    }).catch((error: any)=>{
-      console.error("Error al agregar la gestion:", error);
-    });
+  function agregarNuevaGestionHandler(g: gestion) {
+    agregarGestion(g)
+      .then(() => {
+        // console.log("Gestion agregada correctamente");
+        generarGestiones();
+      })
+      .catch((error: any) => {
+        // console.error("Error al agregar la gestion:", error);
+      });
+  }
+
+  function generarDocumentos() {
+    obtenerDocumentos()
+      .then((docs) => {
+        // console.log("Documentos obtenidos:", docs);
+        setDocumentosLista(docs);
+      })
+      .catch((error) => {
+        // console.error("Error al obtener los documentos:", error);
+      });
   }
 
   return (
@@ -191,6 +221,17 @@ export default function App() {
               Agendar Nueva Cita
             </Text>
           </Pressable>
+          <Pressable
+            style={appStyles.secondaryButton}
+            onPress={() => {
+              generarDocumentos();
+              setDocumentos(true);
+            }}
+          >
+            <Text style={appStyles.secondaryButtonText}>
+              Revisar Documentos
+            </Text>
+          </Pressable>
         </View>
         {gestiones && (
           <Modal transparent={true} animationType="fade">
@@ -219,7 +260,7 @@ export default function App() {
                       index={index}
                       modifiacado={() => modificarGestionHandler(item)}
                       borrado={() => borrarGestionHandler(item.id)}
-                      />
+                    />
                   )}
                   contentContainerStyle={{ paddingVertical: 10 }}
                   showsVerticalScrollIndicator={false}
@@ -276,118 +317,164 @@ export default function App() {
             </View>
           </Modal>
         )}
-        {
-          nuevaGestion && (
-            <Modal transparent={true} animationType="fade">
-              <View style={appStyles.modalOverlay}>
-                <View style={appStyles.modalContent}>
-                  <View style={appStyles.modalHeader}>
-                    <Text style={appStyles.modalTitle}>Nueva Gestión</Text>
-                    <Pressable
-                      style={appStyles.closeButton}
-                      onPress={() => setNuevaGestion(false)}
-                    >
-                      <Text style={appStyles.closeButtonText}>✕</Text>
-                    </Pressable>
-                  </View>
-
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    <Text style={appStyles.label}>Tipo de Gestión</Text>
-                    <View style={appStyles.pickerContainer}>
-                      <Picker
-                        selectedValue={nuevoTipo}
-                        onValueChange={(itemValue) => setNuevoTipo(itemValue)}
-                        style={appStyles.picker}
-                      >
-                        <Picker.Item label="Cita" value="cita" />
-                        <Picker.Item label="Taller" value="taller" />
-                      </Picker>
-                    </View>
-
-                    <Text style={appStyles.label}>Fecha</Text>
-                    <Pressable
-                      style={appStyles.inputField}
-                      onPress={() => setMostrarDatePicker(true)}
-                    >
-                      <Text style={{ color: nuevaFecha ? '#1a1a2e' : '#999' }}>
-                        {nuevaFecha || 'Selecciona una fecha'}
-                      </Text>
-                    </Pressable>
-
-                    {mostrarDatePicker && (
-                      <DateTimePicker
-                        value={fechaSeleccionada}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                          setMostrarDatePicker(false);
-                          if (selectedDate) {
-                            setFechaSeleccionada(selectedDate);
-                            // Formatear fecha a YYYY-MM-DD
-                            const year = selectedDate.getFullYear();
-                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                            const day = String(selectedDate.getDate()).padStart(2, '0');
-                            setNuevaFecha(`${year}-${month}-${day}`);
-                          }
-                        }}
-                      />
-                    )}
-
-                    <Text style={appStyles.label}>Hora (HH:MM)</Text>
-                    <TextInput
-                      style={appStyles.inputField}
-                      value={nuevaHora}
-                      onChangeText={setNuevaHora}
-                      placeholder="14:30"
-                    />
-
-                    <Text style={appStyles.label}>Matrícula Relacionada</Text>
-                    <View style={appStyles.pickerContainer}>
-                      <Picker
-                        selectedValue={matriculaSeleccionada}
-                        onValueChange={(itemValue) => setMatriculaSeleccionada(itemValue)}
-                        style={appStyles.picker}
-                      >
-                        {matriculas.map((mat) => (
-                          <Picker.Item key={mat} label={mat} value={mat} />
-                        ))}
-                      </Picker>
-                    </View>
-                  </ScrollView>
-
+        {nuevaGestion && (
+          <Modal transparent={true} animationType="fade">
+            <View style={appStyles.modalOverlay}>
+              <View style={appStyles.modalContent}>
+                <View style={appStyles.modalHeader}>
+                  <Text style={appStyles.modalTitle}>Nueva Gestión</Text>
                   <Pressable
-                    style={appStyles.primaryButton}
-                    onPress={() => {
-                      const nuevaGestionObj: gestion = {
-                        id: 0, // El servidor lo asignará
-                        tipo: nuevoTipo,
-                        fecha: nuevaFecha,
-                        hora: nuevaHora,
-                        matriculaRelacionada: matriculaSeleccionada
-                      };
-                      agregarNuevaGestionHandler(nuevaGestionObj);
-                      setNuevaGestion(false);
-                      // Limpiar campos
-                      setNuevoTipo("cita");
-                      setNuevaFecha("");
-                      setNuevaHora("");
-                      setNuevaMatricula("");
-                    }}
-                  >
-                    <Text style={appStyles.primaryButtonText}>Guardar Gestión</Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={appStyles.backButton}
+                    style={appStyles.closeButton}
                     onPress={() => setNuevaGestion(false)}
                   >
-                    <Text style={appStyles.backButtonText}>Cancelar</Text>
+                    <Text style={appStyles.closeButtonText}>✕</Text>
                   </Pressable>
                 </View>
+
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <Text style={appStyles.label}>Tipo de Gestión</Text>
+                  <View style={appStyles.pickerContainer}>
+                    <Picker
+                      selectedValue={nuevoTipo}
+                      onValueChange={(itemValue) => setNuevoTipo(itemValue)}
+                      style={appStyles.picker}
+                    >
+                      <Picker.Item label="Cita" value="cita" />
+                      <Picker.Item label="Taller" value="taller" />
+                    </Picker>
+                  </View>
+
+                  <Text style={appStyles.label}>Fecha</Text>
+                  <Pressable
+                    style={appStyles.inputField}
+                    onPress={() => setMostrarDatePicker(true)}
+                  >
+                    <Text style={{ color: nuevaFecha ? "#1a1a2e" : "#999" }}>
+                      {nuevaFecha || "Selecciona una fecha"}
+                    </Text>
+                  </Pressable>
+
+                  {mostrarDatePicker && (
+                    <DateTimePicker
+                      value={fechaSeleccionada}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        setMostrarDatePicker(false);
+                        if (selectedDate) {
+                          setFechaSeleccionada(selectedDate);
+                          // Formatear fecha a YYYY-MM-DD
+                          const year = selectedDate.getFullYear();
+                          const month = String(
+                            selectedDate.getMonth() + 1
+                          ).padStart(2, "0");
+                          const day = String(selectedDate.getDate()).padStart(
+                            2,
+                            "0"
+                          );
+                          setNuevaFecha(`${year}-${month}-${day}`);
+                        }
+                      }}
+                    />
+                  )}
+
+                  <Text style={appStyles.label}>Hora (HH:MM)</Text>
+                  <TextInput
+                    style={appStyles.inputField}
+                    value={nuevaHora}
+                    onChangeText={setNuevaHora}
+                    placeholder="14:30"
+                  />
+
+                  <Text style={appStyles.label}>Matrícula Relacionada</Text>
+                  <View style={appStyles.pickerContainer}>
+                    <Picker
+                      selectedValue={matriculaSeleccionada}
+                      onValueChange={(itemValue) =>
+                        setMatriculaSeleccionada(itemValue)
+                      }
+                      style={appStyles.picker}
+                    >
+                      {matriculas.map((mat) => (
+                        <Picker.Item key={mat} label={mat} value={mat} />
+                      ))}
+                    </Picker>
+                  </View>
+                </ScrollView>
+
+                <Pressable
+                  style={appStyles.primaryButton}
+                  onPress={() => {
+                    const nuevaGestionObj: gestion = {
+                      id: 0, // El servidor lo asignará
+                      tipo: nuevoTipo,
+                      fecha: nuevaFecha,
+                      hora: nuevaHora,
+                      matriculaRelacionada: matriculaSeleccionada,
+                    };
+                    agregarNuevaGestionHandler(nuevaGestionObj);
+                    setNuevaGestion(false);
+                    // Limpiar campos
+                    setNuevoTipo("cita");
+                    setNuevaFecha("");
+                    setNuevaHora("");
+                    setNuevaMatricula("");
+                  }}
+                >
+                  <Text style={appStyles.primaryButtonText}>
+                    Guardar Gestión
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  style={appStyles.backButton}
+                  onPress={() => setNuevaGestion(false)}
+                >
+                  <Text style={appStyles.backButtonText}>Cancelar</Text>
+                </Pressable>
               </View>
-            </Modal>
-          )
-        }
+            </View>
+          </Modal>
+        )}
+        {documentos && (
+          <Modal transparent={true} animationType="fade">
+            <View style={appStyles.modalOverlay}>
+              <View style={appStyles.modalContent}>
+                <View style={appStyles.modalHeader}>
+                  <Text style={appStyles.modalTitle}>Documentos</Text>
+                  <Pressable
+                    style={appStyles.closeButton}
+                    onPress={() => setDocumentos(false)}
+                  >
+                    <Text style={appStyles.closeButtonText}>✕</Text>
+                  </Pressable>
+                </View>
+
+                <FlatList
+                  data={documentosLista}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <Documento
+                      id={item.id}
+                      estado={item.estado}
+                      titulo={item.titulo}
+                      descripcion={item.descripcion}
+                    />
+                  )}
+                  contentContainerStyle={{ paddingVertical: 10 }}
+                  showsVerticalScrollIndicator={false}
+                />
+
+                <Pressable
+                  style={appStyles.backButton}
+                  onPress={() => setDocumentos(false)}
+                >
+                  <Text style={appStyles.backButtonText}>Cerrar</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </View>
   );
