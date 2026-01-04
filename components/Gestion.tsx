@@ -3,7 +3,7 @@ import React from "react";
 import { gestion } from "../model/Tipos";
 import { gestionStyles } from "../Styles/styles";
 
-export function Gestion({ tipo, fecha, hora, matriculaRelacionada }: gestion) {
+export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, borrado, modifiacado}: gestion) {
 
   const fechaActual = new Date().toISOString().split('T')[0];
 
@@ -30,11 +30,11 @@ export function Gestion({ tipo, fecha, hora, matriculaRelacionada }: gestion) {
         <Text style={gestionStyles.tipo}>Pendinete</Text>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
-        <Pressable style={gestionStyles.updateButton}>
+        <Pressable style={gestionStyles.updateButton} onPress={modifiacado}>
           <Text style={gestionStyles.deleteButtonText}>Modificar</Text>
         </Pressable>
 
-        <Pressable style={gestionStyles.deleteButton}>
+        <Pressable style={gestionStyles.deleteButton} onPress={borrado}>
           <Text style={gestionStyles.deleteButtonText}>Borrar</Text>
         </Pressable>
         
