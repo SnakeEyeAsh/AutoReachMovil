@@ -258,7 +258,7 @@ export default function App() {
                       hora={item.hora}
                       matriculaRelacionada={item.matriculaRelacionada}
                       index={index}
-                      modifiacado={() => modificarGestionHandler(item)}
+                      modifiacado={modificarGestionHandler}
                       borrado={() => borrarGestionHandler(item.id)}
                     />
                   )}
