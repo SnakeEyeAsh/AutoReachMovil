@@ -9,7 +9,7 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
 import { Gestion } from "./components/Gestion";
@@ -22,6 +22,7 @@ import {
   modificarGestionDAO,
   agregarGestion,
   obtenerDocumentos,
+  obtenerCliente,
 } from "./database/ClienteDAO";
 import { Coche } from "./components/Coche";
 import { Documento } from "./components/Documento";
@@ -29,6 +30,8 @@ import { coche, gestion, documento } from "./model/Tipos";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function App() {
+  const [clienteNombre, setClienteNombre] = useState("...");
+  const [clienteApellidos, setClienteApellidos] = useState("...");
   const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
   const [coche, setCoche] = useState<coche>();
 
@@ -65,10 +68,15 @@ export default function App() {
       });
   }
 
-  useEffect(() => llenarMatriculas(), []);
   useEffect(() => {
-    setMatriculaSeleccionada(matriculas[0]);
-  }, [matriculas]);
+    llenarMatriculas();
+    obtenerCliente()
+      .then((c) => {
+        setClienteNombre(c.nombre);
+        setClienteApellidos(c.apellidos);
+      })
+      .catch(() => {});
+  }, []);
 
   //console.log("Matriculas en estado:", matriculaSeleccionada);
 
@@ -167,7 +175,7 @@ export default function App() {
       <ScrollView style={appStyles.content}>
         <View style={appStyles.profileCard}>
           <Text style={appStyles.cardTitle}>Perfil del Conductor</Text>
-          <Cliente nombre={"Pepe"} apellidos={"Gonzales"} />
+          <Cliente nombre={clienteNombre} apellidos={clienteApellidos} />
         </View>
 
         <View style={appStyles.card}>

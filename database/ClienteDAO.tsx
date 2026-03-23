@@ -1,74 +1,119 @@
-import { Platform } from "react-native";
-import axios from "axios";
-import { coche, gestion, gestiones, documento } from "../model/Tipos";
+import { supabase } from './supabase'
+import { coche, gestion, gestiones, documento } from '../model/Tipos'
 
-const IP = Platform.OS === "android" ? "10.0.2.2" : "localhost";
+const CLIENTE_ID = 1
 
-const URL = `http://${IP}:3000`;
+export async function obtenerCliente(): Promise<{ nombre: string; apellidos: string }> {
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('nombre, apellidos')
+    .eq('id', CLIENTE_ID)
+    .single()
+  if (error) throw error
+  return data
+}
 
 export async function obtenerMatriculas(): Promise<string[]> {
-  // console.log("cargando matriculas");
-  const url = `${URL}/coches`;
-  const respuesta = await axios.get(url);
-  return respuesta.data.map((coche: coche) => coche.matricula);
+  const { data, error } = await supabase
+    .from('coches')
+    .select('matricula')
+  if (error) throw error
+  return data.map((c: any) => c.matricula)
 }
 
 export async function obtenerCoche(matricula: string): Promise<coche> {
-  let coche = null;
-  const url = `${URL}/coches`;
-  const respuesta = await axios.get(url);
-  let cocheDev = respuesta.data.find((c: coche) => c.matricula === matricula);
-  if (cocheDev != null) {
-    coche = cocheDev;
-    // console.log("Coche encontrado:", coche);
-  } else {
-    coche = {
-      marca: "Desconocida",
-      modelo: "Desconocido",
-      matricula: matricula,
-      kilometros: 0,
-    };
+  const { data, error } = await supabase
+    .from('coches')
+    .select('matricula, kilometraje, modelos(nombre, marcas(nombre))')
+    .eq('matricula', matricula)
+    .single()
+  if (error || !data) {
+    return { marca: 'Desconocida', modelo: 'Desconocido', matricula, kilometros: 0 }
   }
-  return coche;
+  const modelo = data.modelos as any
+  return {
+    marca: modelo?.marcas?.nombre ?? 'Desconocida',
+    modelo: modelo?.nombre ?? 'Desconocido',
+    matricula: data.matricula,
+    kilometros: data.kilometraje,
+  }
 }
 
 export async function obtenerGestiones(): Promise<gestiones> {
-  const url = `${URL}/gestiones`;
-  const respuesta = await axios.get(url);
-  return respuesta.data;
+  const { data, error } = await supabase
+    .from('transacciones')
+    .select('id, tipo_transaccion, fecha_transaccion, coches(matricula)')
+    .eq('cliente_id', CLIENTE_ID)
+  if (error) throw error
+  return data.map((t: any) => {
+    const dt = new Date(t.fecha_transaccion)
+    const fecha = dt.toISOString().split('T')[0]
+    const hora = dt.toTimeString().slice(0, 5)
+    return {
+      id: t.id,
+      tipo: t.tipo_transaccion,
+      fecha,
+      hora,
+      matriculaRelacionada: (t.coches as any)?.matricula ?? '',
+    }
+  })
 }
 
-export async function agregarGestion(gestion:gestion) {
-  const url = `${URL}/gestiones`;
-  const respuesta = await axios.post(url, gestion);
-  // console.log("Gestión agregada exitosamente:", respuesta.data);
-  return respuesta.data;
+export async function agregarGestion(gestion: gestion) {
+  const { data: cocheData, error: cocheError } = await supabase
+    .from('coches')
+    .select('vin')
+    .eq('matricula', gestion.matriculaRelacionada)
+    .single()
+  if (cocheError) throw cocheError
+
+  const fechaTransaccion = `${gestion.fecha}T${gestion.hora}:00`
+  const { data, error } = await supabase
+    .from('transacciones')
+    .insert({
+      tipo_transaccion: gestion.tipo,
+      vin_coche: cocheData.vin,
+      cliente_id: CLIENTE_ID,
+      fecha_transaccion: fechaTransaccion,
+      monto_total: 0,
+    })
+  if (error) throw error
+  return data
 }
 
 export async function borrarGestionDAO(id: number) {
-  const url = `${URL}/gestiones/${id}`;
-  await axios.delete(url);
-  // console.log(`Gestión con ID ${id} borrada exitosamente`);
+  const { error } = await supabase
+    .from('transacciones')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
 }
 
 export async function modificarGestionDAO(gestion: gestion) {
-  const url = `${URL}/gestiones/${gestion.id}`;
-  await axios.put(url, gestion);
-  // console.log(`Gestión con ID ${gestion.id} modificada exitosamente`);
+  const { data: cocheData, error: cocheError } = await supabase
+    .from('coches')
+    .select('vin')
+    .eq('matricula', gestion.matriculaRelacionada)
+    .single()
+  if (cocheError) throw cocheError
+
+  const fechaTransaccion = `${gestion.fecha}T${gestion.hora}:00`
+  const { error } = await supabase
+    .from('transacciones')
+    .update({
+      tipo_transaccion: gestion.tipo,
+      vin_coche: cocheData.vin,
+      fecha_transaccion: fechaTransaccion,
+    })
+    .eq('id', gestion.id)
+  if (error) throw error
 }
 
 export async function obtenerDocumentos(): Promise<documento[]> {
-  const url = `${URL}/documentos`;
-  const respuesta = await axios.get(url);
-  return respuesta.data;
+  // No existe tabla documentos en Supabase aún
+  return []
 }
 
-export async function firmarDocumentoDAO(id: number) {
-  const url = `${URL}/documentos/${id}`;
-  const documentoActual = await axios.get(url);
-  await axios.put(url, {
-    ...documentoActual.data,
-    estado: "Firmado",
-  });
-  // console.log(`Documento con ID ${id} firmado exitosamente`);
+export async function firmarDocumentoDAO(_id: number) {
+  // No existe tabla documentos en Supabase aún
 }
