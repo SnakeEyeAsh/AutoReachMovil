@@ -1,24 +1,43 @@
 import { supabase } from './supabase'
 import { coche, gestion, gestiones, documento } from '../model/Tipos'
 
-const CLIENTE_ID = 1
+async function obtenerClienteId(): Promise<number> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) throw new Error('No hay usuario autenticado')
+
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('id')
+    .eq('email', user.email)
+    .single()
+  if (error) throw error
+  return data.id
+}
 
 export async function obtenerCliente(): Promise<{ nombre: string; apellidos: string }> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) throw new Error('No hay usuario autenticado')
+
   const { data, error } = await supabase
     .from('clientes')
     .select('nombre, apellidos')
-    .eq('id', CLIENTE_ID)
+    .eq('email', user.email)
     .single()
   if (error) throw error
   return data
 }
 
 export async function obtenerMatriculas(): Promise<string[]> {
+  const clienteId = await obtenerClienteId()
   const { data, error } = await supabase
-    .from('coches')
-    .select('matricula')
+    .from('transacciones')
+    .select('coches(matricula)')
+    .eq('cliente_id', clienteId)
   if (error) throw error
-  return data.map((c: any) => c.matricula)
+  const matriculas = data
+    .map((t: any) => t.coches?.matricula)
+    .filter((m: string | undefined): m is string => !!m)
+  return [...new Set(matriculas)]
 }
 
 export async function obtenerCoche(matricula: string): Promise<coche> {
@@ -40,10 +59,11 @@ export async function obtenerCoche(matricula: string): Promise<coche> {
 }
 
 export async function obtenerGestiones(): Promise<gestiones> {
+  const clienteId = await obtenerClienteId()
   const { data, error } = await supabase
     .from('transacciones')
     .select('id, tipo_transaccion, fecha_transaccion, coches(matricula)')
-    .eq('cliente_id', CLIENTE_ID)
+    .eq('cliente_id', clienteId)
   if (error) throw error
   return data.map((t: any) => {
     const dt = new Date(t.fecha_transaccion)
@@ -73,7 +93,7 @@ export async function agregarGestion(gestion: gestion) {
     .insert({
       tipo_transaccion: gestion.tipo,
       vin_coche: cocheData.vin,
-      cliente_id: CLIENTE_ID,
+      cliente_id: await obtenerClienteId(),
       fecha_transaccion: fechaTransaccion,
       monto_total: 0,
     })

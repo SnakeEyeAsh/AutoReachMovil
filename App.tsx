@@ -6,11 +6,12 @@ import {
   ScrollView,
   Pressable,
   Modal,
+  StyleSheet,
 } from "react-native";
 import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
 import { Coche } from "./components/Coche";
-import { appStyles } from "./Styles/styles";
+import { appStyles, colors } from "./Styles/styles";
 import {
   obtenerCoche,
   obtenerMatriculas,
@@ -20,11 +21,15 @@ import { coche } from "./model/Tipos";
 import { GestionesScreen } from "./screens/GestionesScreen";
 import { NuevaGestionScreen } from "./screens/NuevaGestionScreen";
 import { DocumentosScreen } from "./screens/DocumentosScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { SplashScreen } from "./screens/SplashScreen";
 import { TabBar } from "./components/TabBar";
+import { supabase } from "./database/supabase";
 
-type Screen = "Home" | "Gestiones" | "NuevaGestion" | "Documentos";
+type Tab = "Home" | "Gestiones" | "NuevaGestion" | "Documentos";
+type Screen = "Splash" | "Login" | Tab;
 
-function HomeScreen() {
+function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [clienteNombre, setClienteNombre] = useState("...");
   const [clienteApellidos, setClienteApellidos] = useState("...");
   const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
@@ -62,8 +67,15 @@ function HomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
 
       <View style={appStyles.header}>
-        <Text style={appStyles.headerTitle}>AutoReach</Text>
-        <Text style={appStyles.headerSubtitle}>Gestión de tu vehículo</Text>
+        <View style={homeStyles.headerRow}>
+          <View>
+            <Text style={appStyles.headerTitle}>AutoReach</Text>
+            <Text style={appStyles.headerSubtitle}>Gestión de tu vehículo</Text>
+          </View>
+          <Pressable style={homeStyles.logoutButton} onPress={onLogout}>
+            <Text style={homeStyles.logoutText}>Salir</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView style={appStyles.content}>
@@ -131,22 +143,55 @@ function HomeScreen() {
   );
 }
 
+const homeStyles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  logoutButton: {
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  logoutText: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("Home");
+  const [screen, setScreen] = useState<Screen>("Splash");
 
   function navigate(s: string) {
     setScreen(s as Screen);
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setScreen("Login");
+  }
+
+  if (screen === "Splash") {
+    return <SplashScreen onFinish={() => setScreen("Login")} />;
+  }
+
+  if (screen === "Login") {
+    return <LoginScreen onLogin={() => setScreen("Home")} />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
       <View style={{ flex: 1 }}>
-        {screen === "Home"         && <HomeScreen />}
+        {screen === "Home"         && <HomeScreen onLogout={handleLogout} />}
         {screen === "Gestiones"    && <GestionesScreen onNavigate={navigate} />}
         {screen === "NuevaGestion" && <NuevaGestionScreen onNavigate={navigate} />}
         {screen === "Documentos"   && <DocumentosScreen onNavigate={navigate} />}
       </View>
-      <TabBar active={screen} onNavigate={(s) => setScreen(s)} />
+      <TabBar active={screen as Tab} onNavigate={(s) => setScreen(s)} />
     </View>
   );
 }
