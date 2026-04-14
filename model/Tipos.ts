@@ -3,6 +3,7 @@ export type coche={
     modelo:string
     matricula:string
     kilometros:number
+    año:number
 }
 export type gestion={
     id:number

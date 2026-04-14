@@ -1,10 +1,21 @@
-import { StyleSheet, Text, View, Image} from "react-native";
-import React from "react";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
 import { coche } from "../model/Tipos";
-import { cocheStyles } from "../Styles/styles";
+import { cocheStyles, colors } from "../Styles/styles";
+import { fetchCarPhotos } from "../services/autoDevService";
 
+export function Coche({ marca, modelo, matricula, kilometros, año }: coche) {
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-export function Coche({ marca, modelo, matricula, kilometros }: coche) {
+  useEffect(() => {
+    setLoading(true)
+    setPhotoUrl(null)
+    fetchCarPhotos(marca, modelo, año)
+      .then((photos) => setPhotoUrl(photos[0] ?? null))
+      .finally(() => setLoading(false))
+  }, [marca, modelo, año])
+
   return (
     <View style={cocheStyles.container}>
       <View>
@@ -13,11 +24,23 @@ export function Coche({ marca, modelo, matricula, kilometros }: coche) {
       </View>
 
       <View style={cocheStyles.imageContainer}>
-        <Image
-          resizeMode="contain"
-          source={require("../assets/coche.png")}
-          style={cocheStyles.cocheImage}
-        />
+        {loading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
+          </View>
+        ) : photoUrl ? (
+          <Image
+            source={{ uri: photoUrl }}
+            resizeMode="contain"
+            style={cocheStyles.cocheImage}
+          />
+        ) : (
+          <Image
+            source={require("../assets/coche.png")}
+            resizeMode="contain"
+            style={cocheStyles.cocheImage}
+          />
+        )}
       </View>
 
       <Text style={cocheStyles.matricula}>{matricula}</Text>
@@ -31,3 +54,12 @@ export function Coche({ marca, modelo, matricula, kilometros }: coche) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  loaderContainer: {
+    width: 300,
+    height: 220,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+})

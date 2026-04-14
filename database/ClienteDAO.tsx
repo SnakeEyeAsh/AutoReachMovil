@@ -43,18 +43,19 @@ export async function obtenerMatriculas(): Promise<string[]> {
 export async function obtenerCoche(matricula: string): Promise<coche> {
   const { data, error } = await supabase
     .from('coches')
-    .select('matricula, kilometraje, modelos(nombre, marcas(nombre))')
+    .select('matricula, kilometraje, anio, modelos(nombre, marcas(nombre))')
     .eq('matricula', matricula)
-    .single()
+    .single() as any
   if (error || !data) {
-    return { marca: 'Desconocida', modelo: 'Desconocido', matricula, kilometros: 0 }
+    return { marca: 'Desconocida', modelo: 'Desconocido', matricula, kilometros: 0, año: 0 }
   }
-  const modelo = data.modelos as any
+  const modelo = data.modelos
   return {
     marca: modelo?.marcas?.nombre ?? 'Desconocida',
     modelo: modelo?.nombre ?? 'Desconocido',
     matricula: data.matricula,
     kilometros: data.kilometraje,
+    año: data.anio ?? 0,
   }
 }
 
