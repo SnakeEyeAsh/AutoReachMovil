@@ -1,140 +1,61 @@
 import { supabase } from './supabase'
 import { coche, gestion, gestiones, documento } from '../model/Tipos'
+import { apiGet, apiPost, apiPut, apiDelete, apiGetImage, apiUploadImage } from './api'
 
-async function obtenerClienteId(): Promise<number> {
+
+export async function obtenerCliente(): Promise<{ id: number; nombre: string; apellidos: string }> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) throw new Error('No hay usuario autenticado')
-
-  const { data, error } = await supabase
-    .from('clientes')
-    .select('id')
-    .eq('email', user.email)
-    .single()
-  if (error) throw error
-  return data.id
-}
-
-export async function obtenerCliente(): Promise<{ nombre: string; apellidos: string }> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) throw new Error('No hay usuario autenticado')
-
-  const { data, error } = await supabase
-    .from('clientes')
-    .select('nombre, apellidos')
-    .eq('email', user.email)
-    .single()
-  if (error) throw error
-  return data
+  const clientes = await apiGet<any[]>(`/clientes?search=${encodeURIComponent(user.email)}`)
+  const cliente = clientes.find((c: any) => c.email === user.email)
+  if (!cliente) throw new Error('Cliente no encontrado')
+  return { id: cliente.id, nombre: cliente.nombre, apellidos: cliente.apellidos }
 }
 
 export async function obtenerMatriculas(): Promise<string[]> {
-  const clienteId = await obtenerClienteId()
-  const { data, error } = await supabase
-    .from('transacciones')
-    .select('coches(matricula)')
-    .eq('cliente_id', clienteId)
-  if (error) throw error
-  const matriculas = data
-    .map((t: any) => t.coches?.matricula)
-    .filter((m: string | undefined): m is string => !!m)
-  return [...new Set(matriculas)]
+  return apiGet<string[]>('/me/matriculas')
 }
 
 export async function obtenerCoche(matricula: string): Promise<coche> {
-  const { data, error } = await supabase
-    .from('coches')
-    .select('matricula, kilometraje, anio, modelos(nombre, marcas(nombre))')
-    .eq('matricula', matricula)
-    .single() as any
-  if (error || !data) {
-    return { marca: 'Desconocida', modelo: 'Desconocido', matricula, kilometros: 0, año: 0 }
-  }
-  const modelo = data.modelos
-  return {
-    marca: modelo?.marcas?.nombre ?? 'Desconocida',
-    modelo: modelo?.nombre ?? 'Desconocido',
-    matricula: data.matricula,
-    kilometros: data.kilometraje,
-    año: data.anio ?? 0,
-  }
+  return apiGet<coche>(`/me/coches/${matricula}`)
 }
 
 export async function obtenerGestiones(): Promise<gestiones> {
-  const clienteId = await obtenerClienteId()
-  const { data, error } = await supabase
-    .from('transacciones')
-    .select('id, tipo_transaccion, fecha_transaccion, coches(matricula)')
-    .eq('cliente_id', clienteId)
-  if (error) throw error
-  return data.map((t: any) => {
-    const dt = new Date(t.fecha_transaccion)
-    const fecha = dt.toISOString().split('T')[0]
-    const hora = dt.toTimeString().slice(0, 5)
-    return {
-      id: t.id,
-      tipo: t.tipo_transaccion,
-      fecha,
-      hora,
-      matriculaRelacionada: (t.coches as any)?.matricula ?? '',
-    }
-  })
+  return apiGet<gestiones>('/me/gestiones')
 }
 
 export async function agregarGestion(gestion: gestion) {
-  const { data: cocheData, error: cocheError } = await supabase
-    .from('coches')
-    .select('vin')
-    .eq('matricula', gestion.matriculaRelacionada)
-    .single()
-  if (cocheError) throw cocheError
-
-  const fechaTransaccion = `${gestion.fecha}T${gestion.hora}:00`
-  const { data, error } = await supabase
-    .from('transacciones')
-    .insert({
-      tipo_transaccion: gestion.tipo,
-      vin_coche: cocheData.vin,
-      cliente_id: await obtenerClienteId(),
-      fecha_transaccion: fechaTransaccion,
-      monto_total: 0,
-    })
-  if (error) throw error
-  return data
+  return apiPost('/me/gestiones', {
+    tipo: gestion.tipo,
+    fecha: gestion.fecha,
+    hora: gestion.hora,
+    matriculaRelacionada: gestion.matriculaRelacionada,
+  })
 }
 
 export async function borrarGestionDAO(id: number) {
-  const { error } = await supabase
-    .from('transacciones')
-    .delete()
-    .eq('id', id)
-  if (error) throw error
+  return apiDelete(`/me/gestiones/${id}`)
 }
 
 export async function modificarGestionDAO(gestion: gestion) {
-  const { data: cocheData, error: cocheError } = await supabase
-    .from('coches')
-    .select('vin')
-    .eq('matricula', gestion.matriculaRelacionada)
-    .single()
-  if (cocheError) throw cocheError
+  return apiPut(`/me/gestiones/${gestion.id}`, {
+    tipo: gestion.tipo,
+    fecha: gestion.fecha,
+    hora: gestion.hora,
+    matriculaRelacionada: gestion.matriculaRelacionada,
+  })
+}
 
-  const fechaTransaccion = `${gestion.fecha}T${gestion.hora}:00`
-  const { error } = await supabase
-    .from('transacciones')
-    .update({
-      tipo_transaccion: gestion.tipo,
-      vin_coche: cocheData.vin,
-      fecha_transaccion: fechaTransaccion,
-    })
-    .eq('id', gestion.id)
-  if (error) throw error
+export async function obtenerImagenCliente(clienteId: number): Promise<string | null> {
+  return apiGetImage(`/clientes/${clienteId}/imagen`)
+}
+
+export async function subirImagenCliente(clienteId: number, imageUri: string): Promise<void> {
+  return apiUploadImage(`/clientes/${clienteId}/imagen`, imageUri)
 }
 
 export async function obtenerDocumentos(): Promise<documento[]> {
-  // No existe tabla documentos en Supabase aún
-  return []
+  return apiGet<documento[]>('/me/documentos')
 }
 
-export async function firmarDocumentoDAO(_id: number) {
-  // No existe tabla documentos en Supabase aún
-}
+export async function firmarDocumentoDAO(_id: number) {}

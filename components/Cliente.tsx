@@ -1,15 +1,25 @@
 import { Pressable, Text, View, Modal, Alert, Image } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { clienteStyles } from "../Styles/styles";
+import { obtenerImagenCliente, subirImagenCliente } from "../database/ClienteDAO";
 
 export type clienteProp = {
   nombre: string;
   apellidos: string;
+  clienteId: number;
 };
-export function Cliente({ nombre, apellidos }: clienteProp) {
+export function Cliente({ nombre, apellidos, clienteId }: clienteProp) {
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (clienteId) {
+      obtenerImagenCliente(clienteId).then((img) => {
+        if (img) setProfileImage(img)
+      })
+    }
+  }, [clienteId])
 
   const cambiarFotoPerfil = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -36,7 +46,8 @@ export function Cliente({ nombre, apellidos }: clienteProp) {
             });
 
             if (!result.canceled) {
-              setProfileImage(result.assets[0].uri);
+              setProfileImage(result.assets[0].uri)
+              subirImagenCliente(clienteId, result.assets[0].uri).catch(() => {})
             }
           }
         },
@@ -58,7 +69,8 @@ export function Cliente({ nombre, apellidos }: clienteProp) {
             });
 
             if (!result.canceled) {
-              setProfileImage(result.assets[0].uri);
+              setProfileImage(result.assets[0].uri)
+              subirImagenCliente(clienteId, result.assets[0].uri).catch(() => {})
             }
           }
         },

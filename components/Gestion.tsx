@@ -5,7 +5,7 @@ import { gestionStyles, appStyles } from "../Styles/styles";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, borrado, modifiacado}: gestion) {
+export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, borrado, modificado}: gestion) {
 
   const fechaActual = new Date().toISOString().split('T')[0];
 
@@ -37,10 +37,10 @@ export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, bo
       matriculaRelacionada: matriculaEditable,
       index,
       borrado,
-      modifiacado
+      modificado
     };
-    if (modifiacado) {
-      modifiacado(gestionModificada);
+    if (modificado) {
+      modificado(gestionModificada);
     }
     setModalEdicion(false);
   };
@@ -88,7 +88,7 @@ export function Gestion({ id, tipo, fecha, hora, matriculaRelacionada, index, bo
                   value={fechaSeleccionada}
                   mode="date"
                   display="default"
-                  onChange={(event, selectedDate) => {
+                  onChange={(_event, selectedDate) => {
                     setMostrarDatePicker(false);
                     if (selectedDate) {
                       setFechaSeleccionada(selectedDate);

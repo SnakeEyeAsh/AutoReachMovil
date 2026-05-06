@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-type Tab = "Home" | "Gestiones" | "NuevaGestion" | "Documentos";
+type Tab = "Home" | "Talleres" | "Documentos";
 
 type TabConfig = {
   key: Tab;
@@ -12,10 +12,9 @@ type TabConfig = {
 };
 
 const TABS: TabConfig[] = [
-  { key: "Home",        label: "Inicio",    icon: "home-outline",          iconActive: "home" },
-  { key: "Gestiones",   label: "Gestiones", icon: "list-outline",          iconActive: "list" },
-  { key: "NuevaGestion",label: "Nueva Cita",icon: "add-circle-outline",    iconActive: "add-circle" },
-  { key: "Documentos",  label: "Docs",      icon: "document-text-outline", iconActive: "document-text" },
+  { key: "Home",      label: "Inicio",   icon: "home-outline",          iconActive: "home" },
+  { key: "Talleres",  label: "Talleres", icon: "map-outline",           iconActive: "map" },
+  { key: "Documentos",label: "Docs",     icon: "document-text-outline", iconActive: "document-text" },
 ];
 
 type Props = {

@@ -77,7 +77,7 @@ export function GestionesScreen({ onNavigate }: Props) {
             hora={item.hora}
             matriculaRelacionada={item.matriculaRelacionada}
             index={index}
-            modifiacado={modificarGestionHandler}
+            modificado={modificarGestionHandler}
             borrado={() => borrarGestionHandler(item.id)}
           />
         )}

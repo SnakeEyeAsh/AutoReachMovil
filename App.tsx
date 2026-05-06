@@ -7,6 +7,7 @@ import {
   Pressable,
   Modal,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
@@ -18,20 +19,20 @@ import {
   obtenerCliente,
 } from "./database/ClienteDAO";
 import { coche } from "./model/Tipos";
-import { GestionesScreen } from "./screens/GestionesScreen";
-import { NuevaGestionScreen } from "./screens/NuevaGestionScreen";
+import { TalleresScreen } from "./screens/TalleresScreen";
 import { DocumentosScreen } from "./screens/DocumentosScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { SplashScreen } from "./screens/SplashScreen";
 import { TabBar } from "./components/TabBar";
 import { supabase } from "./database/supabase";
 
-type Tab = "Home" | "Gestiones" | "NuevaGestion" | "Documentos";
+type Tab = "Home" | "Talleres" | "Documentos";
 type Screen = "Splash" | "Login" | Tab;
 
 function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [clienteNombre, setClienteNombre] = useState("...");
   const [clienteApellidos, setClienteApellidos] = useState("...");
+  const [clienteId, setClienteId] = useState(0);
   const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
   const [matriculas, setMatriculas] = useState<string[]>([]);
   const [coche, setCoche] = useState<coche>();
@@ -43,10 +44,11 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
         setMatriculas(mats);
         setMatriculaSeleccionada(mats[0] ?? "");
       })
-      .catch(() => {});
+      .catch((err) => Alert.alert("Error matrículas", err?.message ?? String(err)));
 
     obtenerCliente()
       .then((c) => {
+        setClienteId(c.id);
         setClienteNombre(c.nombre);
         setClienteApellidos(c.apellidos);
       })
@@ -81,7 +83,7 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
       <ScrollView style={appStyles.content}>
         <View style={appStyles.profileCard}>
           <Text style={appStyles.cardTitle}>Perfil del Conductor</Text>
-          <Cliente nombre={clienteNombre} apellidos={clienteApellidos} />
+          <Cliente nombre={clienteNombre} apellidos={clienteApellidos} clienteId={clienteId} />
         </View>
 
         <View style={appStyles.card}>
@@ -186,10 +188,9 @@ export default function App() {
   return (
     <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
       <View style={{ flex: 1 }}>
-        {screen === "Home"         && <HomeScreen onLogout={handleLogout} />}
-        {screen === "Gestiones"    && <GestionesScreen onNavigate={navigate} />}
-        {screen === "NuevaGestion" && <NuevaGestionScreen onNavigate={navigate} />}
-        {screen === "Documentos"   && <DocumentosScreen onNavigate={navigate} />}
+        {screen === "Home"      && <HomeScreen onLogout={handleLogout} />}
+        {screen === "Talleres"  && <TalleresScreen />}
+        {screen === "Documentos"&& <DocumentosScreen onNavigate={navigate} />}
       </View>
       <TabBar active={screen as Tab} onNavigate={(s) => setScreen(s)} />
     </View>

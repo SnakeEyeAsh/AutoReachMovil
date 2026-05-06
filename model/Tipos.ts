@@ -12,7 +12,7 @@ export type gestion={
     hora:string
     matriculaRelacionada:string
     index?:number
-    modifiacado?:(g:gestion)=>void
+    modificado?:(g:gestion)=>void
     borrado?:()=>void
 }
 export type gestiones=gestion[]
