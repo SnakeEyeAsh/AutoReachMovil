@@ -55,7 +55,14 @@ export async function subirImagenCliente(clienteId: number, imageUri: string): P
 }
 
 export async function obtenerDocumentos(): Promise<documento[]> {
-  return apiGet<documento[]>('/me/documentos')
+  const { id } = await obtenerCliente()
+  return apiGet<documento[]>(`/documentos?cliente_id=${id}`)
 }
 
-export async function firmarDocumentoDAO(_id: number) {}
+export async function firmarDocumentoDAO(id: number, firmadoPor: string): Promise<void> {
+  return apiPut<void>(`/documentos/${id}/firmar`, { firmado_por: firmadoPor })
+}
+
+export async function actualizarPagoTransaccion(transaccionId: number): Promise<void> {
+  return apiPut<void>(`/transacciones/${transaccionId}/pago`, { estado_pago: 'Pagado' })
+}

@@ -8,6 +8,7 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  FlatList,
 } from "react-native";
 import { Cliente } from "./components/Cliente";
 import { Picker } from "@react-native-picker/picker";
@@ -64,6 +65,13 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
       .catch(() => {});
   }
 
+  const FEATURES = [
+    { icon: "🚗", title: "Tu Flota", desc: "Control total sobre cada vehículo" },
+    { icon: "📄", title: "Contratos Digitales", desc: "Firma al instante desde la app" },
+    { icon: "🔧", title: "Talleres Cercanos", desc: "Mecánicos de confianza en tu zona" },
+    { icon: "🔒", title: "100% Seguro", desc: "Tus datos siempre protegidos" },
+  ];
+
   return (
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
@@ -72,7 +80,9 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
         <View style={homeStyles.headerRow}>
           <View>
             <Text style={appStyles.headerTitle}>AutoReach</Text>
-            <Text style={appStyles.headerSubtitle}>Gestión de tu vehículo</Text>
+            <Text style={appStyles.headerSubtitle}>
+              {clienteNombre !== "..." ? `Bienvenido, ${clienteNombre}` : "Tu concesionario, siempre contigo"}
+            </Text>
           </View>
           <Pressable style={homeStyles.logoutButton} onPress={onLogout}>
             <Text style={homeStyles.logoutText}>Salir</Text>
@@ -80,7 +90,31 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
         </View>
       </View>
 
-      <ScrollView style={appStyles.content}>
+      <ScrollView style={appStyles.content} showsVerticalScrollIndicator={false}>
+
+        {/* Banner promocional */}
+        <View style={homeStyles.promoBanner}>
+          <Text style={homeStyles.promoTitle}>La plataforma integral del concesionario moderno</Text>
+          <Text style={homeStyles.promoSubtitle}>Gestiona contratos, vehículos y servicios desde un solo lugar</Text>
+        </View>
+
+        {/* Feature cards horizontales */}
+        <FlatList
+          horizontal
+          data={FEATURES}
+          keyExtractor={f => f.title}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 4 }}
+          style={{ marginBottom: 16 }}
+          renderItem={({ item }) => (
+            <View style={homeStyles.featureCard}>
+              <Text style={homeStyles.featureIcon}>{item.icon}</Text>
+              <Text style={homeStyles.featureTitle}>{item.title}</Text>
+              <Text style={homeStyles.featureDesc}>{item.desc}</Text>
+            </View>
+          )}
+        />
+
         <View style={appStyles.profileCard}>
           <Text style={appStyles.cardTitle}>Perfil del Conductor</Text>
           <Cliente nombre={clienteNombre} apellidos={clienteApellidos} clienteId={clienteId} />
@@ -88,6 +122,7 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
 
         <View style={appStyles.card}>
           <Text style={appStyles.cardTitle}>Seleccionar Vehículo</Text>
+          <Text style={homeStyles.cardCaption}>Consulta el estado y ficha técnica de tu vehículo</Text>
           <Text style={appStyles.label}>Matrícula</Text>
           <View style={appStyles.pickerContainer}>
             <Picker
@@ -104,6 +139,12 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
             <Text style={appStyles.primaryButtonText}>Ver Coche</Text>
           </Pressable>
         </View>
+
+        <View style={homeStyles.footerBanner}>
+          <Text style={homeStyles.footerText}>AutoReach · Concesionarios de confianza</Text>
+          <Text style={homeStyles.footerSub}>Transparencia y control total en cada transacción</Text>
+        </View>
+
       </ScrollView>
 
       {mostrarCoche && (
@@ -162,6 +203,86 @@ const homeStyles = StyleSheet.create({
     color: colors.accent,
     fontSize: 14,
     fontWeight: "600",
+  },
+  promoBanner: {
+    backgroundColor: "#1a1a2e",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.accent,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  promoTitle: {
+    color: colors.accent,
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  promoSubtitle: {
+    color: colors.lightGray,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  featureCard: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 14,
+    marginRight: 10,
+    width: 140,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    borderTopWidth: 3,
+    borderTopColor: colors.accent,
+  },
+  featureIcon: {
+    fontSize: 26,
+    marginBottom: 6,
+  },
+  featureTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 4,
+  },
+  featureDesc: {
+    fontSize: 11,
+    color: "#888",
+    lineHeight: 15,
+  },
+  cardCaption: {
+    fontSize: 12,
+    color: "#999",
+    marginBottom: 10,
+    marginTop: -8,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  footerBanner: {
+    backgroundColor: "#1a1a2e",
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  footerText: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  footerSub: {
+    color: colors.lightGray,
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: "center",
   },
 });
 

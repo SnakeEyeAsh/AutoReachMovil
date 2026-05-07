@@ -112,8 +112,8 @@ export function TalleresScreen() {
         <Text style={styles.headerTitle}>Talleres Cercanos</Text>
         <Text style={styles.headerSubtitle}>
           {mechanics.length > 0
-            ? `${mechanics.length} talleres encontrados`
-            : 'Buscando talleres...'}
+            ? `${mechanics.length} talleres verificados en tu zona`
+            : 'Localizando talleres de confianza...'}
         </Text>
       </View>
 

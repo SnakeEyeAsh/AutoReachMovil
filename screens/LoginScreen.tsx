@@ -80,11 +80,19 @@ export function LoginScreen({ onLogin }: Props) {
 
       <View style={loginStyles.header}>
         <Text style={loginStyles.logo}>AutoReach</Text>
-        <Text style={loginStyles.subtitle}>Gestión de tu vehículo</Text>
+        <Text style={loginStyles.subtitle}>La plataforma del concesionario moderno</Text>
+        <View style={loginStyles.chipsRow}>
+          {["🚗 Flota", "📄 Contratos", "🔧 Talleres", "🔒 Seguro"].map(c => (
+            <View key={c} style={loginStyles.chip}>
+              <Text style={loginStyles.chipText}>{c}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <View style={loginStyles.form}>
-        <Text style={loginStyles.title}>Iniciar sesión</Text>
+        <Text style={loginStyles.title}>Accede a tu cuenta</Text>
+        <Text style={loginStyles.formSubtitle}>Gestiona tu vehículo, firma contratos y encuentra talleres desde un solo lugar.</Text>
 
         <Text style={appStyles.label}>Email</Text>
         <TextInput
@@ -159,9 +167,38 @@ const loginStyles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.lightGray,
     fontWeight: "300",
+    marginBottom: 14,
+    textAlign: "center",
+  },
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 6,
+  },
+  chip: {
+    backgroundColor: "rgba(0,212,255,0.15)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0,212,255,0.4)",
+  },
+  chipText: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  formSubtitle: {
+    fontSize: 13,
+    color: "#999",
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 19,
+    marginTop: -10,
   },
   form: {
     padding: 30,

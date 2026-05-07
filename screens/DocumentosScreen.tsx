@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Pressable, StatusBar } from "react-native";
+import { View, Text, FlatList, StatusBar } from "react-native";
 import { Documento } from "../components/Documento";
 import { appStyles } from "../Styles/styles";
 import { obtenerDocumentos } from "../database/ClienteDAO";
@@ -12,10 +12,14 @@ type Props = {
 export function DocumentosScreen({ onNavigate }: Props) {
   const [documentosLista, setDocumentosLista] = useState<documento[]>([]);
 
-  useEffect(() => {
+  function cargarDocumentos() {
     obtenerDocumentos()
       .then(setDocumentosLista)
       .catch(() => {});
+  }
+
+  useEffect(() => {
+    cargarDocumentos();
   }, []);
 
   return (
@@ -23,7 +27,7 @@ export function DocumentosScreen({ onNavigate }: Props) {
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
       <View style={appStyles.header}>
         <Text style={appStyles.headerTitle}>Documentos</Text>
-        <Text style={appStyles.headerSubtitle}>Gestión documental</Text>
+        <Text style={appStyles.headerSubtitle}>Firma digital · Sin papeles · Al instante</Text>
       </View>
 
       <FlatList
@@ -31,10 +35,8 @@ export function DocumentosScreen({ onNavigate }: Props) {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <Documento
-            id={item.id}
-            estado={item.estado}
-            titulo={item.titulo}
-            descripcion={item.descripcion}
+            doc={item}
+            onFirmado={cargarDocumentos}
           />
         )}
         contentContainerStyle={{ padding: 16 }}

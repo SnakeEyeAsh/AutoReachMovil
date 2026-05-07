@@ -19,7 +19,13 @@ export type gestiones=gestion[]
 
 export type documento={
     id:number
-    estado:string
-    titulo:string
-    descripcion:string
+    tipo_documento:string
+    estado_documento:string
+    contenido?:string
+    url_pdf?:string
+    fecha_creacion:string
+    fecha_firma:string|null
+    firmado_por:string|null
+    cliente:{ id:number; nombre:string; apellidos:string; dni_nif:string }
+    transaccion:{ id:number; tipo_transaccion:string; monto_total:number; estado_pago:string }
 }

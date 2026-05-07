@@ -109,7 +109,7 @@ export function SplashScreen({ onFinish }: Props) {
       </Animated.Text>
 
       <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
-        Gestión de tu vehículo
+        La plataforma del concesionario moderno
       </Animated.Text>
 
       {/* Línea decorativa */}
