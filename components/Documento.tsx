@@ -4,20 +4,7 @@ import { documento } from '../model/Tipos'
 import { firmaModalStyles, signatureWebStyle } from '../Styles/styles'
 import SignatureScreen from 'react-native-signature-canvas'
 import { firmarDocumentoDAO, actualizarPagoTransaccion } from '../database/ClienteDAO'
-
-function formatTipo(tipo: string): string {
-  return tipo.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).toLowerCase()
-    .replace(/\b\w/g, c => c.toUpperCase())
-}
-
-function formatEstado(estado: string): string {
-  const map: Record<string, string> = {
-    PENDIENTE_FIRMA: 'Pendiente de firma',
-    FIRMADO: 'Firmado',
-    CANCELADO: 'Cancelado',
-  }
-  return map[estado] ?? estado
-}
+import { formatTipoDocumento, formatEstadoDocumento, formatFecha, formatImporte } from '../utils/formatters'
 
 type Props = {
   doc: documento
@@ -53,10 +40,10 @@ export function Documento({ doc, onFirmado }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Text style={styles.tipo}>{formatTipo(doc.tipo_documento)}</Text>
+        <Text style={styles.tipo}>{formatTipoDocumento(doc.tipo_documento)}</Text>
         <View style={[styles.badge, estaFirmado ? styles.badgeFirmado : styles.badgePendiente]}>
           <Text style={[styles.badgeText, estaFirmado ? styles.badgeFirmadoText : styles.badgePendienteText]}>
-            {formatEstado(estadoLocal)}
+            {formatEstadoDocumento(estadoLocal)}
           </Text>
         </View>
       </View>
@@ -67,7 +54,7 @@ export function Documento({ doc, onFirmado }: Props) {
       </View>
       <View style={styles.infoRow}>
         <Text style={styles.label}>Importe</Text>
-        <Text style={styles.value}>{doc.transaccion.monto_total.toLocaleString('es-ES')} €</Text>
+        <Text style={styles.value}>{formatImporte(doc.transaccion.monto_total)}</Text>
       </View>
       <View style={styles.infoRow}>
         <Text style={styles.label}>Pago</Text>
@@ -75,12 +62,12 @@ export function Documento({ doc, onFirmado }: Props) {
       </View>
       <View style={styles.infoRow}>
         <Text style={styles.label}>Fecha</Text>
-        <Text style={styles.value}>{new Date(doc.fecha_creacion).toLocaleDateString('es-ES')}</Text>
+        <Text style={styles.value}>{formatFecha(doc.fecha_creacion)}</Text>
       </View>
       {doc.fecha_firma && (
         <View style={styles.infoRow}>
           <Text style={styles.label}>Firmado el</Text>
-          <Text style={styles.value}>{new Date(doc.fecha_firma).toLocaleDateString('es-ES')}</Text>
+          <Text style={styles.value}>{formatFecha(doc.fecha_firma)}</Text>
         </View>
       )}
 
