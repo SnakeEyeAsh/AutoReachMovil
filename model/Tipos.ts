@@ -5,18 +5,6 @@ export type coche={
     kilometros:number
     año:number
 }
-export type gestion={
-    id:number
-    tipo:string
-    fecha:string
-    hora:string
-    matriculaRelacionada:string
-    index?:number
-    modificado?:(g:gestion)=>void
-    borrado?:()=>void
-}
-export type gestiones=gestion[]
-
 export type documento={
     id:number
     tipo_documento:string

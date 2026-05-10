@@ -16,13 +16,11 @@ import {
   obtenerDocumentos,
   firmarDocumentoDAO,
   actualizarPagoTransaccion,
-  borrarGestionDAO,
 } from '../../database/ClienteDAO'
-import { apiGet, apiPut, apiDelete } from '../../database/api'
+import { apiGet, apiPut } from '../../database/api'
 
 const mockApiGet = apiGet as jest.Mock
 const mockApiPut = apiPut as jest.Mock
-const mockApiDelete = apiDelete as jest.Mock
 const mockGetUser = supabase.auth.getUser as jest.Mock
 
 const CLIENTE_MOCK = {
@@ -120,12 +118,3 @@ describe('actualizarPagoTransaccion', () => {
   })
 })
 
-describe('borrarGestionDAO', () => {
-  it('llama a DELETE /me/gestiones/:id', async () => {
-    mockApiDelete.mockResolvedValueOnce(undefined)
-
-    await borrarGestionDAO(7)
-
-    expect(mockApiDelete).toHaveBeenCalledWith('/me/gestiones/7')
-  })
-})

@@ -1,7 +1,6 @@
 import { supabase } from './supabase'
-import { coche, gestion, gestiones, documento } from '../model/Tipos'
-import { apiGet, apiPost, apiPut, apiDelete, apiGetImage, apiUploadImage } from './api'
-
+import { coche, documento } from '../model/Tipos'
+import { apiGet, apiPut, apiGetImage, apiUploadImage } from './api'
 
 export async function obtenerCliente(): Promise<{ id: number; nombre: string; apellidos: string }> {
   const { data: { user } } = await supabase.auth.getUser()
@@ -18,32 +17,6 @@ export async function obtenerMatriculas(): Promise<string[]> {
 
 export async function obtenerCoche(matricula: string): Promise<coche> {
   return apiGet<coche>(`/me/coches/${matricula}`)
-}
-
-export async function obtenerGestiones(): Promise<gestiones> {
-  return apiGet<gestiones>('/me/gestiones')
-}
-
-export async function agregarGestion(gestion: gestion) {
-  return apiPost('/me/gestiones', {
-    tipo: gestion.tipo,
-    fecha: gestion.fecha,
-    hora: gestion.hora,
-    matriculaRelacionada: gestion.matriculaRelacionada,
-  })
-}
-
-export async function borrarGestionDAO(id: number) {
-  return apiDelete(`/me/gestiones/${id}`)
-}
-
-export async function modificarGestionDAO(gestion: gestion) {
-  return apiPut(`/me/gestiones/${gestion.id}`, {
-    tipo: gestion.tipo,
-    fecha: gestion.fecha,
-    hora: gestion.hora,
-    matriculaRelacionada: gestion.matriculaRelacionada,
-  })
 }
 
 export async function obtenerImagenCliente(clienteId: number): Promise<string | null> {

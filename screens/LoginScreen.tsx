@@ -43,9 +43,7 @@ export function LoginScreen({ onLogin }: Props) {
         fetch(`${apiUrl}/clientes?search=ping`),
         timeout,
       ]) as Response;
-      console.log('[login] API check status:', check.status);
     } catch (e: any) {
-      console.log('[login] API check error:', e?.message);
       setLoading(false);
       setError("No se puede conectar al servidor. Comprueba tu conexión.");
       return;

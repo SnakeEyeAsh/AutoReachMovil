@@ -7,7 +7,6 @@ import {
   Pressable,
   Modal,
   StyleSheet,
-  Alert,
   FlatList,
 } from "react-native";
 import { Cliente } from "./components/Cliente";
@@ -45,7 +44,7 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
         setMatriculas(mats);
         setMatriculaSeleccionada(mats[0] ?? "");
       })
-      .catch((err) => Alert.alert("Error matrículas", err?.message ?? String(err)));
+      .catch(() => {});
 
     obtenerCliente()
       .then((c) => {

@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://35.202.97.203:3000/api",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://yikeyhhwzdemvnahacte.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "AÑADE_TU_CLAVE_AQUI",
+        "EXPO_PUBLIC_GOOGLE_MAPS_KEY": "AÑADE_TU_CLAVE_AQUI"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json",
+        "track": "internal"
+      }
+    }
+  }
+}
