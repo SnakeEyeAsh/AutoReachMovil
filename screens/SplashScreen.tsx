@@ -72,23 +72,19 @@ export function SplashScreen({ onFinish }: Props) {
   return (
     <View style={styles.container}>
       {/* Círculos decorativos de fondo */}
-      <View style={[styles.circle, styles.circleOuter]} />
-      <View style={[styles.circle, styles.circleMiddle]} />
-      <View style={[styles.circle, styles.circleInner]} />
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View style={styles.circleOuter} />
+        <View style={styles.circleMiddle} />
+        <View style={styles.circleInner} />
+      </View>
 
-      {/* Logo con onda expansiva */}
-      <View style={styles.logoWrapper}>
+      {/* Logo con onda expansiva — centrado exactamente en el 50% de la pantalla */}
+      <View style={styles.logoArea}>
         <Animated.View
-          style={[
-            styles.ring,
-            { opacity: ringOpacity, transform: [{ scale: ringScale }] },
-          ]}
+          style={[styles.ring, { opacity: ringOpacity, transform: [{ scale: ringScale }] }]}
         />
         <Animated.View
-          style={[
-            styles.logoContainer,
-            { opacity: logoOpacity, transform: [{ scale: logoScale }] },
-          ]}
+          style={[styles.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
         >
           <Image
             source={require("../assets/coche.png")}
@@ -98,22 +94,18 @@ export function SplashScreen({ onFinish }: Props) {
         </Animated.View>
       </View>
 
-      {/* Nombre y tagline */}
-      <Animated.Text
-        style={[
-          styles.appName,
-          { opacity: textOpacity, transform: [{ translateY: textY }] },
-        ]}
-      >
-        AutoReach
-      </Animated.Text>
-
-      <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
-        La plataforma del concesionario moderno
-      </Animated.Text>
-
-      {/* Línea decorativa */}
-      <Animated.View style={[styles.line, { opacity: textOpacity }]} />
+      {/* Nombre y tagline — justo debajo del logo */}
+      <View style={styles.textArea}>
+        <Animated.Text
+          style={[styles.appName, { opacity: textOpacity, transform: [{ translateY: textY }] }]}
+        >
+          AutoReach
+        </Animated.Text>
+        <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
+          La plataforma del concesionario moderno
+        </Animated.Text>
+        <Animated.View style={[styles.line, { opacity: textOpacity }]} />
+      </View>
     </View>
   );
 }
@@ -126,32 +118,65 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // Círculos decorativos
-  circle: {
+  circleOuter: {
     position: "absolute",
+    width: 380,
+    height: 380,
+    top: "50%",
+    left: "50%",
+    marginTop: -190,
+    marginLeft: -190,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.accent,
-  },
-  circleOuter: {
-    width: 380,
-    height: 380,
     opacity: 0.06,
   },
   circleMiddle: {
+    position: "absolute",
     width: 280,
     height: 280,
+    top: "50%",
+    left: "50%",
+    marginTop: -140,
+    marginLeft: -140,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.accent,
     opacity: 0.1,
   },
   circleInner: {
+    position: "absolute",
     width: 180,
     height: 180,
+    top: "50%",
+    left: "50%",
+    marginTop: -90,
+    marginLeft: -90,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.accent,
     opacity: 0.15,
   },
   // Logo
-  logoWrapper: {
+  logoArea: {
+    position: "absolute",
+    width: 160,
+    height: 160,
+    top: "50%",
+    left: "50%",
+    marginTop: -80,
+    marginLeft: -80,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 36,
+  },
+  textArea: {
+    position: "absolute",
+    top: "50%",
+    left: 0,
+    right: 0,
+    marginTop: 100,
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
   ring: {
     position: "absolute",
@@ -170,11 +195,6 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 12,
   },
   logo: {
     width: 80,

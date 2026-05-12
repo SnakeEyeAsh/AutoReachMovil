@@ -11,13 +11,15 @@ import {
   Platform,
 } from "react-native";
 import { supabase } from "../database/supabase";
-import { colors, appStyles } from "../Styles/styles";
+import { appStyles, colors } from "../Styles/styles";
+import { useTheme } from "../context/ThemeContext";
 
 interface Props {
   onLogin: () => void;
 }
 
 export function LoginScreen({ onLogin }: Props) {
+  const { colors: tc } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,44 +73,36 @@ export function LoginScreen({ onLogin }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={loginStyles.container}
+      style={[loginStyles.container, { backgroundColor: tc.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={tc.header} />
 
-      <View style={loginStyles.header}>
-        <Text style={loginStyles.logo}>AutoReach</Text>
-        <Text style={loginStyles.subtitle}>La plataforma del concesionario moderno</Text>
-        <View style={loginStyles.chipsRow}>
-          {["🚗 Flota", "📄 Contratos", "🔧 Talleres", "🔒 Seguro"].map(c => (
-            <View key={c} style={loginStyles.chip}>
-              <Text style={loginStyles.chipText}>{c}</Text>
-            </View>
-          ))}
-        </View>
+      <View style={[loginStyles.header, { backgroundColor: tc.header }]}>
+        <Text style={[loginStyles.logo, { color: tc.accent }]}>AutoReach</Text>
+        <Text style={[loginStyles.subtitle, { color: tc.textMuted }]}>La plataforma del concesionario moderno</Text>
       </View>
 
-      <View style={loginStyles.form}>
-        <Text style={loginStyles.title}>Accede a tu cuenta</Text>
-        <Text style={loginStyles.formSubtitle}>Gestiona tu vehículo, firma contratos y encuentra talleres desde un solo lugar.</Text>
+      <View style={[loginStyles.form, { backgroundColor: tc.surface, borderColor: tc.border }]}>
+        <Text style={[loginStyles.title, { color: tc.text }]}>Accede a tu cuenta</Text>
 
-        <Text style={appStyles.label}>Email</Text>
+        <Text style={[appStyles.label, { color: tc.text }]}>Email</Text>
         <TextInput
-          style={appStyles.inputField}
+          style={[appStyles.inputField, { backgroundColor: tc.input, borderColor: tc.inputBorder, color: tc.text }]}
           placeholder="correo@ejemplo.com"
-          placeholderTextColor={colors.lightGray}
+          placeholderTextColor={tc.textMuted}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
 
-        <Text style={appStyles.label}>Contraseña</Text>
-        <View style={loginStyles.passwordContainer}>
+        <Text style={[appStyles.label, { color: tc.text }]}>Contraseña</Text>
+        <View style={[loginStyles.passwordContainer, { backgroundColor: tc.input, borderColor: tc.inputBorder }]}>
           <TextInput
-            style={loginStyles.passwordInput}
+            style={[loginStyles.passwordInput, { color: tc.text }]}
             placeholder="••••••••"
-            placeholderTextColor={colors.lightGray}
+            placeholderTextColor={tc.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -124,14 +118,14 @@ export function LoginScreen({ onLogin }: Props) {
         {error !== "" && <Text style={loginStyles.error}>{error}</Text>}
 
         <Pressable
-          style={[appStyles.primaryButton, loading && loginStyles.buttonDisabled]}
+          style={[appStyles.primaryButton, { backgroundColor: tc.accent }, loading && loginStyles.buttonDisabled]}
           onPress={handleLogin}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={tc.header} />
           ) : (
-            <Text style={appStyles.primaryButtonText}>Entrar</Text>
+            <Text style={[appStyles.primaryButtonText, { color: tc.header }]}>Entrar</Text>
           )}
         </Pressable>
       </View>
@@ -146,67 +140,47 @@ const loginStyles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.primary,
-    paddingTop: 80,
-    paddingBottom: 50,
+    paddingTop: 60,
+    paddingBottom: 32,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
   },
   logo: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "bold",
     color: colors.accent,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.lightGray,
     fontWeight: "300",
-    marginBottom: 14,
     textAlign: "center",
-  },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 6,
-  },
-  chip: {
-    backgroundColor: "rgba(0,212,255,0.15)",
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: "rgba(0,212,255,0.4)",
-  },
-  chipText: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  formSubtitle: {
-    fontSize: 13,
-    color: "#999",
-    textAlign: "center",
-    marginBottom: 16,
-    lineHeight: 19,
-    marginTop: -10,
   },
   form: {
-    padding: 30,
-    marginTop: 30,
+    margin: 20,
+    marginTop: 20,
+    padding: 22,
+    borderRadius: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
     color: colors.primary,
-    marginBottom: 25,
+    marginBottom: 18,
     textAlign: "center",
   },
   error: {
@@ -222,23 +196,23 @@ const loginStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f0f0f0",
-    borderRadius: 12,
-    borderWidth: 2,
+    borderRadius: 10,
+    borderWidth: 1.5,
     borderColor: colors.accent,
-    marginBottom: 15,
+    marginBottom: 12,
   },
   passwordInput: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: 12,
+    fontSize: 15,
     color: colors.primary,
   },
   eyeButton: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   eyeText: {
-    fontSize: 18,
+    fontSize: 16,
   },
 });

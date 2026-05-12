@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../context/ThemeContext";
 
 type Tab = "Home" | "Talleres" | "Documentos";
 
@@ -23,8 +25,10 @@ type Props = {
 };
 
 export function TabBar({ active, onNavigate }: Props) {
+  const { bottom } = useSafeAreaInsets()
+  const { colors } = useTheme()
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.tabBar, borderTopColor: colors.border, paddingBottom: bottom || 4 }]}>
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         return (
@@ -36,9 +40,9 @@ export function TabBar({ active, onNavigate }: Props) {
             <Ionicons
               name={isActive ? tab.iconActive : tab.icon}
               size={24}
-              color={isActive ? "#00d4ff" : "#888"}
+              color={isActive ? colors.accent : colors.textMuted}
             />
-            <Text style={[styles.label, isActive && styles.labelActive]}>
+            <Text style={[styles.label, { color: isActive ? colors.accent : colors.textMuted }, isActive && styles.labelActive]}>
               {tab.label}
             </Text>
             {isActive && <View style={styles.indicator} />}
@@ -55,14 +59,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1a2e",
     borderTopWidth: 1,
     borderTopColor: "#00d4ff33",
-    paddingBottom: 8,
-    paddingTop: 8,
+    paddingBottom: 4,
+    paddingTop: 10,
   },
   tab: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4,
+    paddingVertical: 2,
     position: "relative",
   },
   label: {

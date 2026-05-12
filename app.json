@@ -24,7 +24,6 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "googleMapsApiKey": "TU_CLAVE_AQUI",
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -44,6 +43,11 @@
           "locationWhenInUsePermission": "AutoReach necesita tu ubicación para mostrarte talleres mecánicos cercanos."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "43819c28-1d31-4ed0-8f68-c2de5dbc0d7c"
+      }
+    }
   }
 }

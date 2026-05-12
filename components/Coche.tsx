@@ -57,8 +57,8 @@ export function Coche({ marca, modelo, matricula, kilometros, año }: coche) {
 
 const styles = StyleSheet.create({
   loaderContainer: {
-    width: 300,
-    height: 220,
+    width: '100%',
+    height: 180,
     justifyContent: 'center',
     alignItems: 'center',
   },

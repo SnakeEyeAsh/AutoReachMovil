@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { clienteStyles } from "../Styles/styles";
 import { obtenerImagenCliente, subirImagenCliente } from "../database/ClienteDAO";
+import { useTheme } from "../context/ThemeContext";
 
 export type clienteProp = {
   nombre: string;
@@ -10,6 +11,7 @@ export type clienteProp = {
   clienteId: number;
 };
 export function Cliente({ nombre, apellidos, clienteId }: clienteProp) {
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -93,8 +95,8 @@ export function Cliente({ nombre, apellidos, clienteId }: clienteProp) {
           />
         </Pressable>
       </View>
-      <Text style={clienteStyles.nombre}>{nombre}</Text>
-      <Text style={clienteStyles.apellidos}>{apellidos}</Text>
+      <Text style={[clienteStyles.nombre, { color: colors.text }]}>{nombre}</Text>
+      <Text style={[clienteStyles.apellidos, { color: colors.textMuted }]}>{apellidos}</Text>
 
       <Modal transparent={true} animationType="fade" visible={modalVisible}>
         <View style={clienteStyles.modalOverlay}>
