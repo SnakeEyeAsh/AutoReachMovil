@@ -21,12 +21,23 @@ type Mechanic = {
 }
 
 async function fetchNearbyMechanics(lat: number, lng: number): Promise<Mechanic[]> {
-  const query = `[out:json][timeout:25];(node["shop"="car_repair"](around:${SEARCH_RADIUS},${lat},${lng});way["shop"="car_repair"](around:${SEARCH_RADIUS},${lat},${lng});node["amenity"="car_repair"](around:${SEARCH_RADIUS},${lat},${lng}););out center tags;`
-  const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
+  const ar = `(around:${SEARCH_RADIUS},${lat},${lng})`
+  const query = `[out:json][timeout:30];
+(
+  nwr["shop"~"car_repair|tyres|car_parts|car_service"]${ar};
+  nwr["craft"~"car_repair|mechanic|automobile_repair|car_painter"]${ar};
+  nwr["amenity"~"car_repair|vehicle_inspection"]${ar};
+);
+out center tags;`
+
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `data=${encodeURIComponent(query)}`,
+  })
   const data = await res.json()
 
   return (data.elements as any[])
-    .filter(el => el.tags?.name)
     .map(el => {
       const elLat = el.lat ?? el.center?.lat
       const elLng = el.lon ?? el.center?.lon
@@ -35,7 +46,7 @@ async function fetchNearbyMechanics(lat: number, lng: number): Promise<Mechanic[
         .filter(Boolean).join(', ') || t['addr:full'] || null
       return {
         id: el.id,
-        name: t.name,
+        name: t.name ?? t['brand'] ?? 'Taller sin nombre',
         lat: elLat,
         lng: elLng,
         phone: t.phone ?? t['contact:phone'] ?? null,

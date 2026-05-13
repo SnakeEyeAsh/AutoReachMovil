@@ -1,11 +1,14 @@
 import { supabase } from './supabase'
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3000/api'
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://35.202.97.203:3000/api'
 
 async function getToken(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) throw new Error('No autenticado')
-  return session.access_token
+  for (let i = 0; i < 5; i++) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) return session.access_token
+    await new Promise(r => setTimeout(r, 300))
+  }
+  throw new Error('No autenticado')
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {

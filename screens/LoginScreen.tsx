@@ -35,22 +35,6 @@ export function LoginScreen({ onLogin }: Props) {
     setLoading(true);
     setError("");
 
-    // Verificar que la API está disponible antes de continuar
-    try {
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3000/api';
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 15000)
-      );
-      const check = await Promise.race([
-        fetch(`${apiUrl}/clientes?search=ping`),
-        timeout,
-      ]) as Response;
-    } catch (e: any) {
-      setLoading(false);
-      setError("No se puede conectar al servidor. Comprueba tu conexión.");
-      return;
-    }
-
     const { error: authError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
