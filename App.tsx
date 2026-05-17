@@ -15,7 +15,6 @@ import { appStyles } from "./Styles/styles";
 import {
   obtenerCoche,
   obtenerMatriculas,
-  obtenerCliente,
 } from "./database/ClienteDAO";
 import { coche } from "./model/Tipos";
 import { TalleresScreen } from "./screens/TalleresScreen";
@@ -26,16 +25,17 @@ import { TabBar } from "./components/TabBar";
 import { LoadingBar } from "./components/LoadingBar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
-import { supabase } from "./database/supabase";
+import { clearAuthToken } from "./database/api";
 
 type Tab = "Home" | "Talleres" | "Documentos";
 type Screen = "Splash" | "Login" | Tab;
+type ClienteInfo = { id: number; nombre: string; apellidos: string };
 
-function HomeScreen({ onLogout }: { onLogout: () => void }) {
+function HomeScreen({ onLogout, cliente }: { onLogout: () => void; cliente: ClienteInfo }) {
   const { colors, isDark, toggle } = useTheme();
-  const [clienteNombre, setClienteNombre] = useState("...");
-  const [clienteApellidos, setClienteApellidos] = useState("...");
-  const [clienteId, setClienteId] = useState(0);
+  const clienteNombre = cliente.nombre;
+  const clienteApellidos = cliente.apellidos;
+  const clienteId = cliente.id;
   const [matriculaSeleccionada, setMatriculaSeleccionada] = useState("");
   const [matriculas, setMatriculas] = useState<string[]>([]);
   const [coche, setCoche] = useState<coche>();
@@ -43,25 +43,13 @@ function HomeScreen({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let pending = 2;
-    const done = () => { if (--pending === 0) setLoading(false); };
-
     obtenerMatriculas()
       .then((mats) => {
         setMatriculas(mats);
         setMatriculaSeleccionada(mats[0] ?? "");
       })
       .catch(() => {})
-      .finally(done);
-
-    obtenerCliente()
-      .then((c) => {
-        setClienteId(c.id);
-        setClienteNombre(c.nombre);
-        setClienteApellidos(c.apellidos);
-      })
-      .catch(() => {})
-      .finally(done);
+      .finally(() => setLoading(false));
   }, []);
 
   function verCoche() {
@@ -205,21 +193,27 @@ const styles = StyleSheet.create({
 
 function AppNavigator() {
   const [screen, setScreen] = useState<Screen>("Splash");
+  const [cliente, setCliente] = useState<ClienteInfo>({ id: 0, nombre: "...", apellidos: "..." });
 
   function navigate(s: string) { setScreen(s as Screen); }
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await clearAuthToken();
     setScreen("Login");
   }
 
+  function handleLogin(c: ClienteInfo) {
+    setCliente(c);
+    setScreen("Home");
+  }
+
   if (screen === "Splash") return <SplashScreen onFinish={() => setScreen("Login")} />;
-  if (screen === "Login")  return <LoginScreen onLogin={() => setScreen("Home")} />;
+  if (screen === "Login")  return <LoginScreen onLogin={handleLogin} />;
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        {screen === "Home"       && <HomeScreen onLogout={handleLogout} />}
+        {screen === "Home"       && <HomeScreen onLogout={handleLogout} cliente={cliente} />}
         {screen === "Talleres"   && <TalleresScreen />}
         {screen === "Documentos" && <DocumentosScreen onNavigate={navigate} />}
       </View>

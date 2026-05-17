@@ -1,13 +1,20 @@
-import { supabase } from './supabase'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://35.202.97.203:3000/api'
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://35.202.97.203:3000/api'
+
+const TOKEN_KEY = 'auth_token'
+
+export async function setAuthToken(token: string): Promise<void> {
+  await AsyncStorage.setItem(TOKEN_KEY, token)
+}
+
+export async function clearAuthToken(): Promise<void> {
+  await AsyncStorage.removeItem(TOKEN_KEY)
+}
 
 async function getToken(): Promise<string> {
-  for (let i = 0; i < 5; i++) {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.access_token) return session.access_token
-    await new Promise(r => setTimeout(r, 300))
-  }
+  const token = await AsyncStorage.getItem(TOKEN_KEY)
+  if (token) return token
   throw new Error('No autenticado')
 }
 
@@ -18,6 +25,20 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
   if (response.status === 204) return undefined as T
   return response.json()
+}
+
+export async function apiLogin(email: string, password: string): Promise<{
+  token: string
+  cliente: { id: number; nombre: string; apellidos: string; email: string }
+}> {
+  const res = await fetch(`${BASE_URL}/clientes/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const data = await handleResponse<any>(res)
+  await setAuthToken(data.token)
+  return data
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
@@ -53,7 +74,6 @@ export async function apiDelete(path: string): Promise<void> {
   }).then(handleResponse<void>)
 }
 
-// Sube imagen como multipart/form-data (ruta pública, sin auth)
 export async function apiUploadImage(path: string, imageUri: string): Promise<void> {
   const form = new FormData()
   form.append('imagen', { uri: imageUri, type: 'image/jpeg', name: 'perfil.jpg' } as any)
@@ -63,7 +83,6 @@ export async function apiUploadImage(path: string, imageUri: string): Promise<vo
   }).then(handleResponse<void>)
 }
 
-// Descarga imagen con auth (GET /api/me/imagen) y la devuelve como data URI base64
 export async function apiGetImage(path: string): Promise<string | null> {
   try {
     const token = await getToken()

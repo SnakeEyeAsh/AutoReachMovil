@@ -10,12 +10,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { supabase } from "../database/supabase";
 import { appStyles, colors } from "../Styles/styles";
 import { useTheme } from "../context/ThemeContext";
+import { apiLogin } from "../database/api";
 
 interface Props {
-  onLogin: () => void;
+  onLogin: (cliente: { id: number; nombre: string; apellidos: string }) => void;
 }
 
 export function LoginScreen({ onLogin }: Props) {
@@ -35,23 +35,20 @@ export function LoginScreen({ onLogin }: Props) {
     setLoading(true);
     setError("");
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-
-    setLoading(false);
-
-    if (authError) {
-      if (authError.message.includes("Email not confirmed")) {
-        setError("Confirma tu email antes de entrar.");
-      } else if (authError.message.includes("Invalid login")) {
+    try {
+      const { cliente } = await apiLogin(email.trim(), password);
+      setLoading(false);
+      onLogin(cliente);
+    } catch (e: any) {
+      setLoading(false);
+      const msg: string = e?.message ?? '';
+      if (msg.includes('401') || msg.includes('credenciales')) {
         setError("Email o contraseña incorrectos.");
+      } else if (msg.includes('403')) {
+        setError("Este email no está registrado como cliente.");
       } else {
-        setError(authError.message);
+        setError("No se puede conectar al servidor. Comprueba tu conexión.");
       }
-    } else {
-      onLogin();
     }
   }
 
