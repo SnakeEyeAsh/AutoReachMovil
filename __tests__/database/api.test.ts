@@ -1,17 +1,15 @@
-import { supabase } from '../../database/supabase'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { apiGet, apiPost, apiPut, apiDelete, apiGetImage } from '../../database/api'
 
 const mockFetch = global.fetch as jest.Mock
-const mockGetSession = supabase.auth.getSession as jest.Mock
+const mockGetItem = AsyncStorage.getItem as jest.Mock
 
 const FAKE_TOKEN = 'fake-jwt-token'
-const BASE_URL = 'http://10.0.2.2:3000/api'
+const BASE_URL = 'http://35.202.97.203:3000/api'
 
 beforeEach(() => {
   jest.clearAllMocks()
-  mockGetSession.mockResolvedValue({
-    data: { session: { access_token: FAKE_TOKEN } },
-  })
+  mockGetItem.mockResolvedValue(FAKE_TOKEN)
 })
 
 describe('apiGet', () => {
@@ -45,8 +43,8 @@ describe('apiGet', () => {
     await expect(apiGet('/ruta-inexistente')).rejects.toThrow('No encontrado')
   })
 
-  it('lanza error si no hay sesión activa', async () => {
-    mockGetSession.mockResolvedValueOnce({ data: { session: null } })
+  it('lanza error si no hay token almacenado', async () => {
+    mockGetItem.mockResolvedValueOnce(null)
 
     await expect(apiGet('/cualquier-ruta')).rejects.toThrow('No autenticado')
   })

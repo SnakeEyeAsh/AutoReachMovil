@@ -1,13 +1,16 @@
 import React from 'react'
 import { render, fireEvent, waitFor } from '@testing-library/react-native'
 import { LoginScreen } from '../../screens/LoginScreen'
-import { supabase } from '../../database/supabase'
 
-const mockSignIn = supabase.auth.signInWithPassword as jest.Mock
+jest.mock('../../database/api', () => ({
+  apiLogin: jest.fn(),
+}))
+
+import { apiLogin } from '../../database/api'
+const mockApiLogin = apiLogin as jest.Mock
 
 beforeEach(() => {
   jest.clearAllMocks()
-  ;(global.fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200 })
 })
 
 describe('LoginScreen — renderizado', () => {
@@ -30,14 +33,6 @@ describe('LoginScreen — renderizado', () => {
     const { getByText } = render(<LoginScreen onLogin={() => {}} />)
     expect(getByText('Entrar')).toBeTruthy()
   })
-
-  it('muestra los chips de características', () => {
-    const { getByText } = render(<LoginScreen onLogin={() => {}} />)
-    expect(getByText('🚗 Flota')).toBeTruthy()
-    expect(getByText('📄 Contratos')).toBeTruthy()
-    expect(getByText('🔧 Talleres')).toBeTruthy()
-    expect(getByText('🔒 Seguro')).toBeTruthy()
-  })
 })
 
 describe('LoginScreen — validación', () => {
@@ -56,8 +51,9 @@ describe('LoginScreen — validación', () => {
 })
 
 describe('LoginScreen — autenticación', () => {
-  it('llama a onLogin si las credenciales son correctas', async () => {
-    mockSignIn.mockResolvedValueOnce({ error: null })
+  it('llama a onLogin con los datos del cliente si las credenciales son correctas', async () => {
+    const cliente = { id: 1, nombre: 'Juan', apellidos: 'García', email: 'user@test.com' }
+    mockApiLogin.mockResolvedValueOnce({ token: 'tok', cliente })
     const onLogin = jest.fn()
     const { getByText, getByPlaceholderText } = render(<LoginScreen onLogin={onLogin} />)
 
@@ -65,13 +61,11 @@ describe('LoginScreen — autenticación', () => {
     fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123')
     fireEvent.press(getByText('Entrar'))
 
-    await waitFor(() => expect(onLogin).toHaveBeenCalled())
+    await waitFor(() => expect(onLogin).toHaveBeenCalledWith(cliente))
   })
 
   it('muestra error si las credenciales son incorrectas', async () => {
-    mockSignIn.mockResolvedValueOnce({
-      error: { message: 'Invalid login credentials' },
-    })
+    mockApiLogin.mockRejectedValueOnce(new Error('401 credenciales inválidas'))
     const { getByText, getByPlaceholderText } = render(<LoginScreen onLogin={() => {}} />)
 
     fireEvent.changeText(getByPlaceholderText('correo@ejemplo.com'), 'mal@test.com')
@@ -83,23 +77,8 @@ describe('LoginScreen — autenticación', () => {
     )
   })
 
-  it('muestra error si el email no está confirmado', async () => {
-    mockSignIn.mockResolvedValueOnce({
-      error: { message: 'Email not confirmed' },
-    })
-    const { getByText, getByPlaceholderText } = render(<LoginScreen onLogin={() => {}} />)
-
-    fireEvent.changeText(getByPlaceholderText('correo@ejemplo.com'), 'sin@confirmar.com')
-    fireEvent.changeText(getByPlaceholderText('••••••••'), 'pass')
-    fireEvent.press(getByText('Entrar'))
-
-    await waitFor(() =>
-      expect(getByText('Confirma tu email antes de entrar.')).toBeTruthy()
-    )
-  })
-
   it('muestra error si la API no está disponible', async () => {
-    ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network Error'))
+    mockApiLogin.mockRejectedValueOnce(new Error('Network Error'))
     const { getByText, getByPlaceholderText } = render(<LoginScreen onLogin={() => {}} />)
 
     fireEvent.changeText(getByPlaceholderText('correo@ejemplo.com'), 'user@test.com')

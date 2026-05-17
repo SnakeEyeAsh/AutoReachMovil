@@ -1,13 +1,9 @@
-import { supabase } from './supabase'
 import { coche, documento } from '../model/Tipos'
-import { apiGet, apiPut, apiGetImage, apiUploadImage } from './api'
+import { apiGet, apiPut, apiGetImage, apiUploadImage, getAuthCliente } from './api'
 
 export async function obtenerCliente(): Promise<{ id: number; nombre: string; apellidos: string }> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) throw new Error('No hay usuario autenticado')
-  const clientes = await apiGet<any[]>(`/clientes?search=${encodeURIComponent(user.email)}`)
-  const cliente = clientes.find((c: any) => c.email === user.email)
-  if (!cliente) throw new Error('Cliente no encontrado')
+  const cliente = await getAuthCliente()
+  if (!cliente) throw new Error('No hay usuario autenticado')
   return { id: cliente.id, nombre: cliente.nombre, apellidos: cliente.apellidos }
 }
 

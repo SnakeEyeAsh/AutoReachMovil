@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://35.202.97.203:3000/api'
 
 const TOKEN_KEY = 'auth_token'
+const CLIENTE_KEY = 'auth_cliente'
 
 export async function setAuthToken(token: string): Promise<void> {
   await AsyncStorage.setItem(TOKEN_KEY, token)
@@ -10,6 +11,16 @@ export async function setAuthToken(token: string): Promise<void> {
 
 export async function clearAuthToken(): Promise<void> {
   await AsyncStorage.removeItem(TOKEN_KEY)
+  await AsyncStorage.removeItem(CLIENTE_KEY)
+}
+
+export async function setAuthCliente(cliente: object): Promise<void> {
+  await AsyncStorage.setItem(CLIENTE_KEY, JSON.stringify(cliente))
+}
+
+export async function getAuthCliente(): Promise<any | null> {
+  const raw = await AsyncStorage.getItem(CLIENTE_KEY)
+  return raw ? JSON.parse(raw) : null
 }
 
 async function getToken(): Promise<string> {
@@ -38,6 +49,7 @@ export async function apiLogin(email: string, password: string): Promise<{
   })
   const data = await handleResponse<any>(res)
   await setAuthToken(data.token)
+  await setAuthCliente(data.cliente)
   return data
 }
 

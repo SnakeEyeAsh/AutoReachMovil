@@ -16,14 +16,6 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(),
 }))
 
-// Mock react-native-maps
-jest.mock('react-native-maps', () => ({
-  __esModule: true,
-  default: 'MapView',
-  Marker: 'Marker',
-  PROVIDER_GOOGLE: 'google',
-}))
-
 // Mock react-native-signature-canvas
 jest.mock('react-native-signature-canvas', () => ({
   __esModule: true,
@@ -35,7 +27,15 @@ jest.mock('react-native-webview', () => ({
   WebView: 'WebView',
 }))
 
-// Mock supabase
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+}))
+
+// Mock supabase (DB only — auth no longer used)
 jest.mock('./database/supabase', () => ({
   supabase: {
     auth: {

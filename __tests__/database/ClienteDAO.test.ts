@@ -1,6 +1,3 @@
-import { supabase } from '../../database/supabase'
-
-// Mockear el módulo api antes de importar el DAO
 jest.mock('../../database/api', () => ({
   apiGet: jest.fn(),
   apiPost: jest.fn(),
@@ -8,6 +5,7 @@ jest.mock('../../database/api', () => ({
   apiDelete: jest.fn(),
   apiGetImage: jest.fn(),
   apiUploadImage: jest.fn(),
+  getAuthCliente: jest.fn(),
 }))
 
 import {
@@ -17,49 +15,36 @@ import {
   firmarDocumentoDAO,
   actualizarPagoTransaccion,
 } from '../../database/ClienteDAO'
-import { apiGet, apiPut } from '../../database/api'
+import { apiGet, apiPut, getAuthCliente } from '../../database/api'
 
 const mockApiGet = apiGet as jest.Mock
 const mockApiPut = apiPut as jest.Mock
-const mockGetUser = supabase.auth.getUser as jest.Mock
+const mockGetAuthCliente = getAuthCliente as jest.Mock
 
 const CLIENTE_MOCK = {
   id: 5,
   nombre: 'Juan',
   apellidos: 'García',
   email: 'juan@test.com',
-  dni_nif: '12345678A',
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
-  mockGetUser.mockResolvedValue({
-    data: { user: { email: 'juan@test.com' } },
-  })
+  mockGetAuthCliente.mockResolvedValue(CLIENTE_MOCK)
 })
 
 describe('obtenerCliente', () => {
   it('devuelve id, nombre y apellidos del cliente autenticado', async () => {
-    mockApiGet.mockResolvedValueOnce([CLIENTE_MOCK])
-
     const result = await obtenerCliente()
 
-    expect(mockApiGet).toHaveBeenCalledWith(
-      expect.stringContaining('juan%40test.com')
-    )
+    expect(mockGetAuthCliente).toHaveBeenCalled()
     expect(result).toEqual({ id: 5, nombre: 'Juan', apellidos: 'García' })
   })
 
   it('lanza error si no hay usuario autenticado', async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: null } })
+    mockGetAuthCliente.mockResolvedValueOnce(null)
 
     await expect(obtenerCliente()).rejects.toThrow('No hay usuario autenticado')
-  })
-
-  it('lanza error si el cliente no existe en la base de datos', async () => {
-    mockApiGet.mockResolvedValueOnce([])
-
-    await expect(obtenerCliente()).rejects.toThrow('Cliente no encontrado')
   })
 })
 
@@ -83,9 +68,7 @@ describe('obtenerMatriculas', () => {
 
 describe('obtenerDocumentos', () => {
   it('llama a la API con el cliente_id del usuario autenticado', async () => {
-    mockApiGet
-      .mockResolvedValueOnce([CLIENTE_MOCK]) // obtenerCliente interno
-      .mockResolvedValueOnce([{ id: 1, tipo_documento: 'CONTRATO_VENTA' }])
+    mockApiGet.mockResolvedValueOnce([{ id: 1, tipo_documento: 'CONTRATO_VENTA' }])
 
     const result = await obtenerDocumentos()
 
@@ -117,4 +100,3 @@ describe('actualizarPagoTransaccion', () => {
     })
   })
 })
-
