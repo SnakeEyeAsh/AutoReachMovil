@@ -8,6 +8,7 @@ import * as Location from 'expo-location'
 import { useTheme } from '../context/ThemeContext'
 
 const SEARCH_RADIUS = 5000
+const PLACES_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY ?? ''
 
 type Mechanic = {
   id: number
@@ -21,42 +22,28 @@ type Mechanic = {
 }
 
 async function fetchNearbyMechanics(lat: number, lng: number): Promise<Mechanic[]> {
-  const ar = `(around:${SEARCH_RADIUS},${lat},${lng})`
-  const query = `[out:json][timeout:30];
-(
-  nwr["shop"~"car_repair|tyres|car_parts|car_service"]${ar};
-  nwr["craft"~"car_repair|mechanic|automobile_repair|car_painter"]${ar};
-  nwr["amenity"~"car_repair|vehicle_inspection"]${ar};
-);
-out center tags;`
-
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${encodeURIComponent(query)}`,
-  })
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${SEARCH_RADIUS}&type=car_repair&key=${PLACES_KEY}`
+  const res = await fetch(url)
   const data = await res.json()
 
-  return (data.elements as any[])
-    .map(el => {
-      const elLat = el.lat ?? el.center?.lat
-      const elLng = el.lon ?? el.center?.lon
-      const t = el.tags ?? {}
-      const addr = [t['addr:street'], t['addr:housenumber'], t['addr:city']]
-        .filter(Boolean).join(', ') || t['addr:full'] || null
-      return {
-        id: el.id,
-        name: t.name ?? t['brand'] ?? 'Taller sin nombre',
-        lat: elLat,
-        lng: elLng,
-        phone: t.phone ?? t['contact:phone'] ?? null,
-        address: addr,
-        opening_hours: t.opening_hours ?? null,
-        website: t.website ?? t['contact:website'] ?? null,
-      }
-    })
-    .filter(m => m.lat && m.lng)
+  if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+    throw new Error(data.status)
+  }
+
+  return (data.results as any[]).map((place, i) => ({
+    id: i,
+    name: place.name ?? 'Taller sin nombre',
+    lat: place.geometry.location.lat,
+    lng: place.geometry.location.lng,
+    address: place.vicinity ?? null,
+    opening_hours: place.opening_hours?.open_now != null
+      ? (place.opening_hours.open_now ? 'Abierto ahora' : 'Cerrado ahora')
+      : null,
+    phone: null,
+    website: null,
+  }))
 }
+
 
 function buildMapHTML(lat: number, lng: number, mechanics: Mechanic[]): string {
   const markersJS = mechanics.map(m => `
@@ -102,8 +89,12 @@ export function TalleresScreen() {
         setLoadingLocation(false)
         return
       }
-      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+      const getPos = Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest })
+        .catch(() => Location.getLastKnownPositionAsync())
+
+      getPos
         .then(pos => {
+          if (!pos) { setPermissionDenied(true); return }
           const lat = pos.coords.latitude
           const lng = pos.coords.longitude
           setLocation({ lat, lng })
@@ -113,6 +104,7 @@ export function TalleresScreen() {
             .catch(() => {})
             .finally(() => setLoadingMechanics(false))
         })
+        .catch(() => setPermissionDenied(true))
         .finally(() => setLoadingLocation(false))
     })
   }, [])
